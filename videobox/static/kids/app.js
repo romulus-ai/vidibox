@@ -1,0 +1,204 @@
+/* Kinder-UI: Tags -> Videos -> Player. Kein Framework, keine Texteingabe. */
+(() => {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const screens = { tags: $("screen-tags"), videos: $("screen-videos"), player: $("screen-player") };
+  const player = $("player");
+  const overlay = $("player-overlay");
+  const VOLUME_STEP = 10;
+  const OVERLAY_TIMEOUT = 4000;
+
+  let volumeState = { volume: 50, max_volume: 100 };
+  let overlayTimer = null;
+
+  // ---------- Hilfen ----------
+
+  function show(name) {
+    Object.entries(screens).forEach(([k, el]) => el.classList.toggle("hidden", k !== name));
+  }
+
+  async function api(path, opts) {
+    const res = await fetch(path, opts);
+    if (!res.ok) throw new Error(`${path}: ${res.status}`);
+    return res.json();
+  }
+
+  function fmtDuration(s) {
+    if (!s) return "";
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${String(sec).padStart(2, "0")} min`;
+  }
+
+  function tile({ image, label, meta, cls, onClick }) {
+    const btn = document.createElement("button");
+    btn.className = `tile ${cls || ""}`;
+    const img = document.createElement("div");
+    img.className = "img";
+    if (image) img.style.backgroundImage = `url("${image}")`;
+    else img.textContent = (label || "?").slice(0, 1).toUpperCase();
+    btn.appendChild(img);
+    const lbl = document.createElement("div");
+    lbl.className = "label";
+    lbl.textContent = label;
+    btn.appendChild(lbl);
+    if (meta) {
+      const m = document.createElement("div");
+      m.className = "meta";
+      m.textContent = meta;
+      btn.appendChild(m);
+    }
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+
+  // ---------- Screen 1: Tags ----------
+
+  async function loadTags() {
+    const tags = await api("/api/tags");
+    const grid = $("tag-grid");
+    grid.replaceChildren();
+    const visible = tags.filter((t) => t.video_count > 0);
+    $("tags-empty").classList.toggle("hidden", visible.length > 0);
+    for (const t of visible) {
+      grid.appendChild(
+        tile({
+          image: t.image_url,
+          label: t.name,
+          meta: `${t.video_count} Video${t.video_count === 1 ? "" : "s"}`,
+          cls: "tag",
+          onClick: () => openTag(t),
+        })
+      );
+    }
+    show("tags");
+  }
+
+  // ---------- Screen 2: Videos ----------
+
+  async function openTag(tag) {
+    const videos = await api(`/api/tags/${tag.id}/videos`);
+    $("videos-title").textContent = tag.name;
+    const grid = $("video-grid");
+    grid.replaceChildren();
+    for (const v of videos) {
+      grid.appendChild(
+        tile({
+          image: v.thumbnail_url,
+          label: v.title,
+          meta: fmtDuration(v.duration_s),
+          onClick: () => play(v),
+        })
+      );
+    }
+    grid.scrollTop = 0;
+    show("videos");
+  }
+
+  // ---------- Screen 3: Player ----------
+
+  function play(video) {
+    $("player-title").textContent = video.title;
+    player.src = video.media_url;
+    show("player");
+    showOverlay();
+    player.play().catch(() => {});
+  }
+
+  function stop() {
+    player.pause();
+    player.removeAttribute("src");
+    player.load();
+    show("videos");
+  }
+
+  function updatePlayIcon() {
+    $("icon-play").classList.toggle("hidden", !player.paused);
+    $("icon-pause").classList.toggle("hidden", player.paused);
+  }
+
+  function showOverlay() {
+    overlay.classList.remove("faded");
+    clearTimeout(overlayTimer);
+    overlayTimer = setTimeout(() => {
+      if (!player.paused) overlay.classList.add("faded");
+    }, OVERLAY_TIMEOUT);
+  }
+
+  player.addEventListener("play", updatePlayIcon);
+  player.addEventListener("pause", () => { updatePlayIcon(); showOverlay(); });
+  player.addEventListener("ended", stop);
+  player.addEventListener("error", stop);
+  player.addEventListener("timeupdate", () => {
+    if (player.duration) {
+      $("progress-fill").style.width = `${(player.currentTime / player.duration) * 100}%`;
+    }
+  });
+
+  screens.player.addEventListener("click", (e) => {
+    if (e.target.closest("button")) return;
+    if (overlay.classList.contains("faded")) showOverlay();
+    else togglePlay();
+  });
+
+  function togglePlay() {
+    if (player.paused) player.play().catch(() => {});
+    else player.pause();
+    showOverlay();
+  }
+
+  // ---------- Lautstaerke ----------
+
+  async function loadVolume() {
+    try {
+      volumeState = await api("/api/volume");
+    } catch (_) {
+      /* ohne Backend-Audio bleibt der Browser-Regler */
+    }
+    applyVolume();
+  }
+
+  function applyVolume() {
+    // Browser-Lautstaerke folgt der Systemlautstaerke, damit es auch ohne amixer wirkt
+    player.volume = Math.max(0, Math.min(1, volumeState.volume / 100));
+  }
+
+  async function changeVolume(delta) {
+    const target = Math.max(0, Math.min(volumeState.max_volume, volumeState.volume + delta));
+    try {
+      volumeState = await api("/api/volume", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ volume: target }),
+      });
+    } catch (_) {
+      volumeState.volume = target;
+    }
+    applyVolume();
+    showOverlay();
+  }
+
+  // ---------- Events ----------
+
+  $("btn-back-tags").addEventListener("click", loadTags);
+  $("btn-back-videos").addEventListener("click", stop);
+  $("btn-play").addEventListener("click", togglePlay);
+  $("btn-vol-down").addEventListener("click", () => changeVolume(-VOLUME_STEP));
+  $("btn-vol-up").addEventListener("click", () => changeVolume(VOLUME_STEP));
+
+  // Kiosk-Haertung: kein Kontextmenue, kein Drag, keine Tastenkuerzel zum Verlassen
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+  document.addEventListener("dragstart", (e) => e.preventDefault());
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" || e.key === "F11" || e.altKey || e.ctrlKey || e.metaKey) e.preventDefault();
+  });
+
+  // Start
+  loadVolume();
+  loadTags();
+  // Tags regelmaessig aktualisieren, damit neue Downloads ohne Neustart erscheinen
+  setInterval(() => {
+    if (!screens.tags.classList.contains("hidden")) loadTags();
+  }, 30000);
+})();

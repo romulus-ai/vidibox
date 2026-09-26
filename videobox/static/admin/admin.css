@@ -1,0 +1,161 @@
+:root {
+  --bg: #f4f5f7;
+  --card: #fff;
+  --border: #dfe2e6;
+  --text: #1f2328;
+  --muted: #6b7280;
+  --primary: #2563eb;
+  --danger: #dc2626;
+  --ok: #16a34a;
+  --warn: #d97706;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+}
+.hidden { display: none !important; }
+h1, h2 { margin: 0 0 12px; }
+h2 { font-size: 1.1rem; }
+label { display: block; margin-bottom: 12px; font-weight: 500; }
+input[type=text], input[type=url], input[type=password], select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+}
+select { width: auto; margin: 0; }
+
+.view { min-height: 100vh; }
+.login {
+  max-width: 340px;
+  margin: 15vh auto;
+  text-align: center;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  margin: 16px auto;
+  max-width: 900px;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 20px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.topbar nav { display: flex; gap: 4px; }
+.tab {
+  border: none;
+  background: transparent;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font: inherit;
+  cursor: pointer;
+}
+.tab.active { background: var(--bg); font-weight: 600; }
+.status { margin-left: auto; color: var(--muted); font-size: .9rem; }
+.tab-panel { padding: 0 16px; }
+
+.btn {
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 8px;
+  font: inherit;
+  cursor: pointer;
+}
+.btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn.danger { color: var(--danger); border-color: var(--danger); }
+.btn.small { padding: 6px 10px; font-size: .9rem; }
+.btn:disabled { opacity: .5; cursor: default; }
+
+.row { display: flex; gap: 10px; align-items: center; }
+.row.space { justify-content: space-between; }
+.row.end { justify-content: flex-end; margin-top: 12px; }
+.row input { margin: 0; }
+
+.error { color: var(--danger); margin: 8px 0; }
+.hint { color: var(--muted); font-size: .9rem; margin: 0 0 12px; }
+
+.tag-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.tag-picker label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 400;
+}
+.tag-picker label:has(input:checked) { background: #dbeafe; border-color: var(--primary); }
+.tag-picker input { margin: 0; }
+.tag-picker .none { color: var(--muted); }
+
+.list { display: flex; flex-direction: column; gap: 10px; }
+.item {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.item .thumb {
+  width: 96px;
+  height: 60px;
+  border-radius: 6px;
+  background: #e5e7eb center/cover no-repeat;
+}
+.item.tag .thumb { height: 96px; }
+.item .title { font-weight: 600; word-break: break-word; }
+.item .sub { color: var(--muted); font-size: .85rem; margin-top: 4px; word-break: break-all; }
+.item .actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.item .tags { margin-top: 6px; display: flex; gap: 4px; flex-wrap: wrap; }
+.chip {
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: .8rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: .8rem;
+  color: #fff;
+  margin-right: 6px;
+}
+.badge.queued { background: var(--muted); }
+.badge.downloading { background: var(--warn); }
+.badge.downloaded { background: var(--ok); }
+.badge.error { background: var(--danger); }
+
+dialog {
+  border: none;
+  border-radius: 12px;
+  padding: 0;
+  width: min(520px, 92vw);
+}
+dialog::backdrop { background: rgba(0,0,0,.4); }
+.dialog-body { padding: 20px; }
+
+@media (max-width: 600px) {
+  .item { grid-template-columns: 72px 1fr; }
+  .item .actions { grid-column: 1 / -1; justify-content: flex-start; }
+}

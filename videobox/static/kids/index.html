@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Videobox</title>
+  <link rel="stylesheet" href="/static/kids/style.css">
+</head>
+<body>
+  <!-- Screen 1: Tags -->
+  <section id="screen-tags" class="screen">
+    <header class="bar">
+      <h1>Was möchtest du schauen?</h1>
+    </header>
+    <div id="tag-grid" class="grid"></div>
+    <p id="tags-empty" class="empty hidden">Noch keine Videos da.<br>Frag Mama oder Papa!</p>
+  </section>
+
+  <!-- Screen 2: Videos eines Tags -->
+  <section id="screen-videos" class="screen hidden">
+    <header class="bar">
+      <button id="btn-back-tags" class="btn-icon" aria-label="Zurück">
+        <svg viewBox="0 0 24 24"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg>
+      </button>
+      <h1 id="videos-title"></h1>
+    </header>
+    <div id="video-grid" class="grid"></div>
+  </section>
+
+  <!-- Screen 3: Player -->
+  <section id="screen-player" class="screen hidden">
+    <video id="player" playsinline preload="auto"></video>
+    <div id="player-overlay" class="overlay">
+      <header class="bar bar-overlay">
+        <button id="btn-back-videos" class="btn-icon" aria-label="Zurück">
+          <svg viewBox="0 0 24 24"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg>
+        </button>
+        <h1 id="player-title"></h1>
+      </header>
+      <div class="controls">
+        <button id="btn-vol-down" class="btn-icon" aria-label="Leiser">
+          <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z"/></svg>
+        </button>
+        <button id="btn-play" class="btn-icon btn-big" aria-label="Abspielen/Pause">
+          <svg id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="icon-pause" viewBox="0 0 24 24" class="hidden"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+        </button>
+        <button id="btn-vol-up" class="btn-icon" aria-label="Lauter">
+          <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+        </button>
+      </div>
+      <div class="progress"><div id="progress-fill"></div></div>
+    </div>
+  </section>
+
+  <script src="/static/kids/app.js"></script>
+</body>
+</html>

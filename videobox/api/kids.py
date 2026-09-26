@@ -1,0 +1,59 @@
+"""Kinder-API: nur lesend, liefert ausschliesslich fertig heruntergeladene Videos."""
+
+from fastapi import APIRouter, HTTPException, status
+
+from videobox.api.deps import AudioDep, DbDep, video_to_out
+from videobox.models import TagOut, VideoOut, VolumeOut, VolumeSet
+from videobox.services import tags as tag_service
+
+router = APIRouter(prefix="/api", tags=["kids"])
+
+
+def _all_tag(db: DbDep) -> dict:
+    videos = db.list_videos(status="downloaded")
+    first_thumb = next((v["thumbnail_path"] for v in videos if v.get("thumbnail_path")), None)
+    return {
+        "id": tag_service.ALL_TAG_ID,
+        "name": "Alle",
+        "sort_order": -1,
+        "has_own_image": False,
+        "image_url": f"/media/thumbs/{first_thumb}" if first_thumb else None,
+        "video_count": len(videos),
+    }
+
+
+@router.get("/tags", response_model=list[TagOut])
+def list_tags(db: DbDep):
+    counts = db.tag_video_counts()
+    tags = [tag_service.tag_to_out(db, t, counts) for t in db.list_tags()]
+    return [_all_tag(db), *tags]
+
+
+@router.get("/tags/{tag_id}/videos", response_model=list[VideoOut])
+def tag_videos(tag_id: int, db: DbDep):
+    if tag_id == tag_service.ALL_TAG_ID:
+        videos = db.list_videos(status="downloaded")
+    else:
+        if not db.get_tag(tag_id):
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Tag nicht gefunden")
+        videos = db.list_videos(status="downloaded", tag_id=tag_id)
+    return [video_to_out(v) for v in videos]
+
+
+@router.get("/videos/{video_id}", response_model=VideoOut)
+def get_video(video_id: str, db: DbDep):
+    video = db.get_video(video_id)
+    if not video or video["status"] != "downloaded":
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Video nicht gefunden")
+    return video_to_out(video)
+
+
+@router.get("/volume", response_model=VolumeOut)
+def get_volume(audio: AudioDep):
+    return VolumeOut(volume=audio.get(), max_volume=audio.max_volume, available=audio.available)
+
+
+@router.put("/volume", response_model=VolumeOut)
+def set_volume(body: VolumeSet, audio: AudioDep):
+    v = audio.set(body.volume)
+    return VolumeOut(volume=v, max_volume=audio.max_volume, available=audio.available)

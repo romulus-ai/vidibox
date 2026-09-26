@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Videobox – Verwaltung</title>
+  <link rel="stylesheet" href="/static/admin/admin.css">
+</head>
+<body>
+  <!-- Login -->
+  <section id="view-login" class="view hidden">
+    <form id="login-form" class="card login">
+      <h1>Videobox</h1>
+      <label>PIN
+        <input id="login-pin" type="password" inputmode="numeric" autocomplete="off" required>
+      </label>
+      <p id="login-error" class="error hidden">Falsche PIN</p>
+      <button type="submit" class="btn primary">Anmelden</button>
+    </form>
+  </section>
+
+  <!-- App -->
+  <section id="view-app" class="view hidden">
+    <header class="topbar">
+      <strong>Videobox – Verwaltung</strong>
+      <nav>
+        <button class="tab active" data-tab="videos">Videos</button>
+        <button class="tab" data-tab="tags">Tags</button>
+      </nav>
+      <div id="status" class="status"></div>
+      <button id="btn-logout" class="btn small">Abmelden</button>
+    </header>
+
+    <!-- Tab Videos -->
+    <main id="tab-videos" class="tab-panel">
+      <form id="add-form" class="card">
+        <h2>Video hinzufügen</h2>
+        <label>URL (ZDF, ARD, KiKA, ARTE, YouTube, …)
+          <input id="add-url" type="url" placeholder="https://www.zdf.de/…" required>
+        </label>
+        <div class="tag-picker" id="add-tags"></div>
+        <p id="add-error" class="error hidden"></p>
+        <button type="submit" class="btn primary">Herunterladen</button>
+      </form>
+
+      <div class="card">
+        <div class="row space">
+          <h2>Videos</h2>
+          <select id="filter-status">
+            <option value="">Alle Status</option>
+            <option value="queued">Wartend</option>
+            <option value="downloading">Lädt</option>
+            <option value="downloaded">Fertig</option>
+            <option value="error">Fehler</option>
+          </select>
+        </div>
+        <div id="video-list" class="list"></div>
+      </div>
+    </main>
+
+    <!-- Tab Tags -->
+    <main id="tab-tags" class="tab-panel hidden">
+      <form id="tag-form" class="card">
+        <h2>Tag anlegen</h2>
+        <div class="row">
+          <input id="tag-name" type="text" placeholder="z. B. Mathe" required maxlength="80">
+          <button type="submit" class="btn primary">Anlegen</button>
+        </div>
+        <p id="tag-error" class="error hidden"></p>
+      </form>
+      <div class="card">
+        <h2>Tags</h2>
+        <p class="hint">Ohne eigenes Bild wird das Thumbnail des ersten Videos mit diesem Tag verwendet.</p>
+        <div id="tag-list" class="list"></div>
+      </div>
+    </main>
+  </section>
+
+  <!-- Dialog: Video bearbeiten -->
+  <dialog id="edit-dialog">
+    <form id="edit-form" method="dialog" class="dialog-body">
+      <h2>Video bearbeiten</h2>
+      <label>Titel <input id="edit-title" type="text" required maxlength="200"></label>
+      <div class="tag-picker" id="edit-tags"></div>
+      <p class="hint" id="edit-url"></p>
+      <div class="row end">
+        <button type="button" class="btn" id="edit-cancel">Abbrechen</button>
+        <button type="submit" class="btn primary">Speichern</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/static/admin/admin.js"></script>
+</body>
+</html>
