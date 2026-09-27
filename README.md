@@ -8,7 +8,11 @@ Chromium im Kiosk-Modus angezeigt.
   Depublikation) und lokal als MP4/H.264 abgelegt.
 - **Kinder-UI** (`/`): große Kacheln – Tags → Videos → Player. Keine Texteingabe, kein Verlassen.
 - **Admin-UI** (`/admin`, PIN-geschützt): URL einfügen → Download, Tags anlegen/zuweisen, Tag-Bilder.
+- **Listen-Import**: vorkuratierte YAML-Listen (Datei, Text oder URL) legen Tags an und stellen alle
+  Videos in die Warteschlange; Fortschritt pro Import sichtbar. Beispiele und Format in [`curated/`](curated/).
 - Tags ohne eigenes Bild verwenden automatisch das Thumbnail ihres ersten Videos.
+- Die Download-Warteschlange liegt in SQLite und überlebt Neustarts: unterbrochene Downloads werden
+  beim Start automatisch fortgesetzt.
 
 ## Stack
 
@@ -43,6 +47,7 @@ bleiben im Volume). Das Image wird wöchentlich neu gebaut, damit yt-dlp aktuell
 | `VIDEOBOX_MAX_VOLUME`      | `70`     | Lautstärke-Deckel in Prozent                |
 | `VIDEOBOX_AUDIO_CONTROL`   | `Master` | ALSA-Mixername (`amixer scontrols`)         |
 | `VIDEOBOX_MAX_RESOLUTION`  | `720`    | Max. Videohöhe beim Download                |
+| `VIDEOBOX_MAX_ATTEMPTS`    | `3`      | Wie oft ein durch Neustart unterbrochener Download erneut versucht wird |
 | `VIDEOBOX_DATA_DIR`        | `/data`  | Datenbank, Videos, Thumbnails, Tag-Bilder   |
 | `VIDEOBOX_PORT`            | `8000`   | HTTP-Port                                   |
 | `VIDEOBOX_SESSION_HOURS`   | `12`     | Gültigkeit des Admin-Logins                 |
@@ -68,7 +73,9 @@ Ohne ALSA (`/dev/snd`) wird die Lautstärke nur simuliert; der Browser-Player ü
   `GET/PUT /api/volume`, `GET /media/videos/{file}` (mit HTTP-Range), `/media/thumbs/…`, `/media/tags/…`
 - Admin (Cookie nach `POST /api/admin/login`): `GET/POST/PUT/DELETE /api/admin/videos[/{id}]`,
   `POST /api/admin/videos/{id}/retry`, `GET/POST/PUT/DELETE /api/admin/tags[/{id}]`,
-  `POST/DELETE /api/admin/tags/{id}/image`, `GET /api/admin/status`
+  `POST/DELETE /api/admin/tags/{id}/image`, `GET /api/admin/status`,
+  Import: `POST /api/admin/import[/preview]` (JSON `{yaml}` oder `{url}`), `POST /api/admin/import[/preview]/file`
+  (Multipart), `GET /api/admin/imports`, `GET /api/admin/imports/{id}/videos`, `DELETE /api/admin/imports/{id}`
 - System: `GET /api/health`, OpenAPI unter `/docs`
 
 Video-Status: `queued → downloading → downloaded | error`.

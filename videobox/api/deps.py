@@ -94,6 +94,8 @@ def video_to_out(video: dict[str, Any]) -> dict[str, Any]:
             f"/media/videos/{video['file_path']}" if downloaded and video.get("file_path") else None
         ),
         "tag_ids": video.get("tag_ids", []),
+        "import_id": video.get("import_id"),
+        "attempts": video.get("attempts") or 0,
         "created_at": video["created_at"],
         "downloaded_at": video.get("downloaded_at"),
     }

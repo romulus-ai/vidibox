@@ -1,0 +1,20 @@
+# Vorlage für eine eigene Videoliste. Kopieren, ausfüllen, im Admin importieren.
+# Format-Beschreibung: curated/README.md
+
+name: Meine Liste
+description: Worum es in dieser Liste geht
+
+# Optional: Tags mit Bild oder Reihenfolge vordefinieren
+tags:
+  - name: Beispiel-Tag
+    # image: https://example.org/bild.jpg
+    # sort_order: 1
+
+# Tags, die alle Videos der Liste bekommen
+default_tags: [Beispiel-Tag]
+
+videos:
+  - url: https://schule.zdf.de/video/gesunde-zaehne-einfach-erklaert-100
+    tags: [Körper]
+    # title: Eigener Titel
+  - https://schule.zdf.de/video/wolken-farbe-einfach-erklaert-100

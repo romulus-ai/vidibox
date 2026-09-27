@@ -1,0 +1,45 @@
+# ZDF goes Schule – "einfach erklärt": kurze Erklärstücke (ca. 1,5 Minuten) zu Alltag, Natur
+# und Wissenschaft. Geeignet ab Grundschulalter.
+# Quelle: https://schule.zdf.de/  (Videos werden über www.zdf.de geladen)
+
+name: ZDF Schule – einfach erklärt
+description: Kurze Erklärvideos zu Körper, Natur und Alltag, je etwa 1,5 Minuten.
+
+tags:
+  - name: Körper
+    sort_order: 1
+  - name: Natur
+    sort_order: 2
+  - name: Alltag
+    sort_order: 3
+
+default_tags: [einfach erklärt]
+
+videos:
+  # Körper
+  - url: https://schule.zdf.de/video/gesunde-zaehne-einfach-erklaert-100
+    tags: [Körper]
+  - url: https://schule.zdf.de/video/schrumpelfinger-einfach-erklaert-100
+    tags: [Körper]
+  - url: https://schule.zdf.de/video/barfussgehen-gut-einfach-erklaert-100
+    tags: [Körper]
+  - url: https://schule.zdf.de/video/bauernhofeffekt-einfach-erklaert-100
+    tags: [Körper, Natur]
+
+  # Natur
+  - url: https://schule.zdf.de/video/wolken-farbe-einfach-erklaert-100
+    tags: [Natur]
+  - url: https://schule.zdf.de/video/spinnen-im-haus-einfach-erklaert-100
+    tags: [Natur]
+  - url: https://schule.zdf.de/video/wattenmeer-gefahr-einfach-erklaert-100
+    tags: [Natur]
+  - url: https://schule.zdf.de/video/wuesten-einfach-erklaert-100
+    tags: [Natur]
+  - url: https://schule.zdf.de/video/mehr-erdbeben-als-frueher-einfach-erklaert-100
+    tags: [Natur]
+
+  # Alltag
+  - url: https://schule.zdf.de/video/geschichte-verkehrsampel-einfach-erklaert-100
+    tags: [Alltag]
+  - url: https://schule.zdf.de/video/autobahn-nummern-einfach-erklaert-100
+    tags: [Alltag]

@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     # Name des ALSA-Mixers (amixer scontrols), z.B. "Master" oder "Digital" (HiFiBerry DAC+)
     audio_control: str = Field(default="Master")
     max_resolution: int = Field(default=720, ge=240, le=2160)
+    # Wie oft ein durch Neustart unterbrochener Download erneut angefasst wird
+    max_attempts: int = Field(default=3, ge=1)
     port: int = Field(default=8000)
     host: str = Field(default="0.0.0.0")
     # Sitzungsdauer fuer den Admin-Login in Stunden

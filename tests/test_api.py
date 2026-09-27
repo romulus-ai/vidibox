@@ -92,12 +92,23 @@ def test_error_and_retry(admin, worker, backend):
     assert admin.get(f"/api/admin/videos/{video['id']}").json()["status"] == "downloaded"
 
 
-def test_recovery_resets_downloading(admin, app):
-    db = app.state.db
+def test_manual_url_is_normalized(admin):
+    r = admin.post("/api/admin/videos", json={"url": "https://schule.zdf.de/video/x-100?a=1#t"})
+    assert r.json()["source_url"] == "https://www.zdf.de/video/x-100"
+    # Dieselbe Quelle ueber die andere Domain ist ein Duplikat
+    assert (
+        admin.post("/api/admin/videos", json={"url": "https://www.zdf.de/video/x-100"}).status_code
+        == 409
+    )
+
+
+def test_retry_resets_attempts(admin, worker, backend):
+    backend.fail_urls.add(URL)
     video = admin.post("/api/admin/videos", json={"url": URL}).json()
-    db.update_video(video["id"], status="downloading")
-    assert db.reset_downloading_to_queued() == 1
-    assert db.get_video(video["id"])["status"] == "queued"
+    run_queue(worker)
+    assert admin.get(f"/api/admin/videos/{video['id']}").json()["attempts"] == 1
+    r = admin.post(f"/api/admin/videos/{video['id']}/retry")
+    assert r.json()["attempts"] == 0 and r.json()["status"] == "queued"
 
 
 def test_status_endpoint(admin):

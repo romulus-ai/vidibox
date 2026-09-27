@@ -26,6 +26,7 @@
       <nav>
         <button class="tab active" data-tab="videos">Videos</button>
         <button class="tab" data-tab="tags">Tags</button>
+        <button class="tab" data-tab="import">Import</button>
       </nav>
       <div id="status" class="status"></div>
       <button id="btn-logout" class="btn small">Abmelden</button>
@@ -72,6 +73,44 @@
         <h2>Tags</h2>
         <p class="hint">Ohne eigenes Bild wird das Thumbnail des ersten Videos mit diesem Tag verwendet.</p>
         <div id="tag-list" class="list"></div>
+      </div>
+    </main>
+
+    <!-- Tab Import -->
+    <main id="tab-import" class="tab-panel hidden">
+      <div class="card">
+        <h2>Liste importieren</h2>
+        <p class="hint">
+          Vorkuratierte Videolisten im YAML-Format. Tags werden automatisch angelegt, neue Videos
+          in die Download-Warteschlange gestellt, bereits vorhandene bekommen nur die Tags ergänzt.
+          Format siehe <code>curated/README.md</code> im Repository.
+        </p>
+        <div class="import-modes">
+          <label><input type="radio" name="import-mode" value="url" checked> Von URL</label>
+          <label><input type="radio" name="import-mode" value="file"> Datei hochladen</label>
+          <label><input type="radio" name="import-mode" value="yaml"> YAML einfügen</label>
+        </div>
+        <div id="import-mode-url" class="import-mode">
+          <input id="import-url" type="url" placeholder="https://raw.githubusercontent.com/…/liste.yaml">
+        </div>
+        <div id="import-mode-file" class="import-mode hidden">
+          <input id="import-file" type="file" accept=".yaml,.yml,text/yaml">
+        </div>
+        <div id="import-mode-yaml" class="import-mode hidden">
+          <textarea id="import-yaml" rows="12" spellcheck="false" placeholder="name: Meine Liste&#10;default_tags: [Biologie]&#10;videos:&#10;  - https://schule.zdf.de/video/…"></textarea>
+        </div>
+        <p id="import-error" class="error hidden"></p>
+        <div class="row">
+          <button type="button" id="btn-import-preview" class="btn">Vorschau</button>
+          <button type="button" id="btn-import-run" class="btn primary">Importieren</button>
+        </div>
+        <div id="import-preview" class="hidden"></div>
+        <div id="import-report" class="hidden"></div>
+      </div>
+
+      <div class="card">
+        <h2>Importe</h2>
+        <div id="import-list" class="list"></div>
       </div>
     </main>
   </section>

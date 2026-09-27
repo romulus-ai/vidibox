@@ -24,8 +24,17 @@ CREATE TABLE IF NOT EXISTS videos (
     file_size      INTEGER,
     status         TEXT NOT NULL DEFAULT 'queued',
     error_msg      TEXT,
+    attempts       INTEGER NOT NULL DEFAULT 0,
+    import_id      TEXT REFERENCES imports(id) ON DELETE SET NULL,
     created_at     TEXT NOT NULL,
     downloaded_at  TEXT
+);
+
+CREATE TABLE IF NOT EXISTS imports (
+    id         TEXT PRIMARY KEY,
+    name       TEXT NOT NULL,
+    source     TEXT,
+    created_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS tags (
@@ -42,13 +51,25 @@ CREATE TABLE IF NOT EXISTS video_tags (
     PRIMARY KEY (video_id, tag_id)
 );
 
+"""
+
+# Indizes werden nach den Migrationen angelegt, damit sie auch neue Spalten nutzen koennen
+INDEXES = """
 CREATE INDEX IF NOT EXISTS idx_videos_status ON videos(status);
+CREATE INDEX IF NOT EXISTS idx_videos_import ON videos(import_id);
 CREATE INDEX IF NOT EXISTS idx_video_tags_tag ON video_tags(tag_id);
 """
 
+# Nachtraegliche Spalten fuer Datenbanken aus aelteren Versionen (Tabelle, Spalte, Definition)
+MIGRATIONS: list[tuple[str, str, str]] = [
+    ("videos", "attempts", "INTEGER NOT NULL DEFAULT 0"),
+    ("videos", "import_id", "TEXT REFERENCES imports(id) ON DELETE SET NULL"),
+]
+
 
 def now_iso() -> str:
-    return datetime.now(UTC).replace(microsecond=0).isoformat()
+    """Zeitstempel mit Mikrosekunden, damit die Reihenfolge der Warteschlange eindeutig ist."""
+    return datetime.now(UTC).isoformat()
 
 
 class Database:
@@ -73,16 +94,27 @@ class Database:
     def init_schema(self) -> None:
         with self.connect() as conn:
             conn.executescript(SCHEMA)
+            for table, column, definition in MIGRATIONS:
+                existing = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+                if column not in existing:
+                    conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+            conn.executescript(INDEXES)
 
     # ---------- Videos ----------
 
-    def create_video(self, source_url: str, title: str, tag_ids: list[int]) -> dict[str, Any]:
+    def create_video(
+        self,
+        source_url: str,
+        title: str,
+        tag_ids: list[int],
+        import_id: str | None = None,
+    ) -> dict[str, Any]:
         video_id = uuid.uuid4().hex
         with self.connect() as conn:
             conn.execute(
-                "INSERT INTO videos (id, title, source_url, status, created_at) "
-                "VALUES (?, ?, ?, 'queued', ?)",
-                (video_id, title, source_url, now_iso()),
+                "INSERT INTO videos (id, title, source_url, status, import_id, created_at) "
+                "VALUES (?, ?, ?, 'queued', ?, ?)",
+                (video_id, title, source_url, import_id, now_iso()),
             )
             self._set_video_tags(conn, video_id, tag_ids)
         return self.get_video(video_id)  # type: ignore[return-value]
@@ -102,7 +134,11 @@ class Database:
             return self._video_with_tags(conn, row) if row else None
 
     def list_videos(
-        self, status: str | None = None, tag_id: int | None = None
+        self,
+        status: str | None = None,
+        tag_id: int | None = None,
+        import_id: str | None = None,
+        oldest_first: bool = False,
     ) -> list[dict[str, Any]]:
         sql = "SELECT v.* FROM videos v"
         params: list[Any] = []
@@ -114,9 +150,12 @@ class Database:
         if status is not None:
             where.append("v.status = ?")
             params.append(status)
+        if import_id is not None:
+            where.append("v.import_id = ?")
+            params.append(import_id)
         if where:
             sql += " WHERE " + " AND ".join(where)
-        sql += " ORDER BY v.created_at DESC"
+        sql += " ORDER BY v.created_at" + ("" if oldest_first else " DESC")
         with self.connect() as conn:
             rows = conn.execute(sql, params).fetchall()
             return [self._video_with_tags(conn, r) for r in rows]
@@ -141,15 +180,29 @@ class Database:
             ).fetchone()
             return self._video_with_tags(conn, row) if row else None
 
-    def reset_downloading_to_queued(self) -> int:
+    def interrupted_downloads(self) -> list[dict[str, Any]]:
+        """Videos, die beim letzten Lauf mitten im Download unterbrochen wurden."""
         with self.connect() as conn:
-            cur = conn.execute("UPDATE videos SET status = 'queued' WHERE status = 'downloading'")
-            return cur.rowcount
+            rows = conn.execute("SELECT * FROM videos WHERE status = 'downloading'").fetchall()
+            return [self._video_with_tags(conn, r) for r in rows]
 
-    def count_by_status(self) -> dict[str, int]:
+    def count_by_status(self, import_id: str | None = None) -> dict[str, int]:
+        sql = "SELECT status, COUNT(*) AS n FROM videos"
+        params: tuple[Any, ...] = ()
+        if import_id is not None:
+            sql += " WHERE import_id = ?"
+            params = (import_id,)
         with self.connect() as conn:
-            rows = conn.execute("SELECT status, COUNT(*) AS n FROM videos GROUP BY status")
+            rows = conn.execute(sql + " GROUP BY status", params)
             return {r["status"]: r["n"] for r in rows}
+
+    def add_video_tags(self, video_id: str, tag_ids: list[int]) -> None:
+        """Ergaenzt Tags, ohne bestehende zu entfernen."""
+        with self.connect() as conn:
+            conn.executemany(
+                "INSERT OR IGNORE INTO video_tags (video_id, tag_id) VALUES (?, ?)",
+                [(video_id, t) for t in tag_ids],
+            )
 
     def _set_video_tags(self, conn: sqlite3.Connection, video_id: str, tag_ids: list[int]) -> None:
         conn.execute("DELETE FROM video_tags WHERE video_id = ?", (video_id,))
@@ -181,6 +234,14 @@ class Database:
     def get_tag(self, tag_id: int) -> dict[str, Any] | None:
         with self.connect() as conn:
             row = conn.execute("SELECT * FROM tags WHERE id = ?", (tag_id,)).fetchone()
+            return dict(row) if row else None
+
+    def get_tag_by_name(self, name: str) -> dict[str, Any] | None:
+        """Sucht case-insensitiv nach dem Tag-Namen."""
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM tags WHERE lower(name) = lower(?)", (name.strip(),)
+            ).fetchone()
             return dict(row) if row else None
 
     def list_tags(self) -> list[dict[str, Any]]:
@@ -227,3 +288,29 @@ class Database:
                 f"SELECT COUNT(*) FROM tags WHERE id IN ({placeholders})", tag_ids
             ).fetchone()[0]
             return n == len(set(tag_ids))
+
+    # ---------- Importe ----------
+
+    def create_import(self, name: str, source: str | None) -> dict[str, Any]:
+        import_id = uuid.uuid4().hex
+        with self.connect() as conn:
+            conn.execute(
+                "INSERT INTO imports (id, name, source, created_at) VALUES (?, ?, ?, ?)",
+                (import_id, name, source, now_iso()),
+            )
+        return self.get_import(import_id)  # type: ignore[return-value]
+
+    def get_import(self, import_id: str) -> dict[str, Any] | None:
+        with self.connect() as conn:
+            row = conn.execute("SELECT * FROM imports WHERE id = ?", (import_id,)).fetchone()
+            return dict(row) if row else None
+
+    def list_imports(self) -> list[dict[str, Any]]:
+        with self.connect() as conn:
+            rows = conn.execute("SELECT * FROM imports ORDER BY created_at DESC").fetchall()
+            return [dict(r) for r in rows]
+
+    def delete_import(self, import_id: str) -> None:
+        """Entfernt nur den Import-Eintrag; Videos bleiben erhalten (import_id wird NULL)."""
+        with self.connect() as conn:
+            conn.execute("DELETE FROM imports WHERE id = ?", (import_id,))

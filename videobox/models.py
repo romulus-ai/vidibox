@@ -59,6 +59,8 @@ class VideoOut(BaseModel):
     thumbnail_url: str | None
     media_url: str | None
     tag_ids: list[int]
+    import_id: str | None = None
+    attempts: int = 0
     created_at: str
     downloaded_at: str | None
 
@@ -78,6 +80,59 @@ class VolumeOut(BaseModel):
 
 class VolumeSet(BaseModel):
     volume: int = Field(ge=0, le=100)
+
+
+class ImportRequest(BaseModel):
+    """Entweder YAML-Text direkt oder eine URL zur YAML-Datei."""
+
+    yaml: str | None = None
+    url: HttpUrl | None = None
+
+
+class ImportPreviewItem(BaseModel):
+    url: str
+    title: str | None
+    tags: list[str]
+    action: str  # create | add_tags | unchanged | duplicate
+    status: str | None = None
+
+
+class ImportPreview(BaseModel):
+    name: str
+    description: str | None
+    new_tags: list[str]
+    items: list[ImportPreviewItem]
+    create: int
+    add_tags: int
+    unchanged: int
+    duplicate: int
+
+
+class ImportIssue(BaseModel):
+    item: str
+    message: str
+
+
+class ImportReport(BaseModel):
+    import_id: str
+    name: str
+    created: int
+    tags_added: int
+    unchanged: int
+    tags_created: list[str]
+    errors: list[ImportIssue]
+
+
+class ImportProgress(BaseModel):
+    id: str
+    name: str
+    source: str | None
+    created_at: str
+    total: int
+    queued: int
+    downloading: int
+    downloaded: int
+    error: int
 
 
 class AdminStatus(BaseModel):

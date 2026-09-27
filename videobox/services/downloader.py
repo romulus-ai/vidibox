@@ -125,12 +125,34 @@ class DownloadWorker:
     # ---------- Lebenszyklus ----------
 
     def start(self) -> None:
-        reset = self.db.reset_downloading_to_queued()
-        if reset:
-            log.info("%d unterbrochene Downloads zurueck in die Warteschlange gestellt", reset)
+        self.recover_interrupted()
         self._thread = threading.Thread(target=self._run, name="downloader", daemon=True)
         self._thread.start()
         self.notify()
+
+    def recover_interrupted(self) -> None:
+        """Stellt beim Start unterbrochene Downloads zurueck in die Warteschlange.
+
+        Teildateien werden entfernt, damit der Download sauber neu beginnt. Wird ein Video
+        wiederholt unterbrochen (z.B. Absturz bei genau diesem Video), landet es nach
+        max_attempts Versuchen im Fehlerstatus statt endlos zu kreisen.
+        """
+        for video in self.db.interrupted_downloads():
+            self._cleanup_partial(video["id"])
+            attempts = int(video.get("attempts") or 0)
+            if attempts >= self.settings.max_attempts:
+                log.warning(
+                    "Download nach %d Versuchen aufgegeben: %s", attempts, video["source_url"]
+                )
+                self.db.update_video(
+                    video["id"],
+                    status="error",
+                    error_msg=f"Nach {attempts} Versuchen abgebrochen (Download wurde wiederholt "
+                    "unterbrochen)",
+                )
+            else:
+                log.info("Unterbrochenen Download erneut eingereiht: %s", video["source_url"])
+                self.db.update_video(video["id"], status="queued")
 
     def stop(self) -> None:
         self._stop.set()
@@ -156,11 +178,19 @@ class DownloadWorker:
     def _process(self, video: dict[str, Any]) -> None:
         video_id = video["id"]
         self.current_video_id = video_id
-        self.db.update_video(video_id, status="downloading", error_msg=None)
+        self.db.update_video(
+            video_id,
+            status="downloading",
+            error_msg=None,
+            attempts=int(video.get("attempts") or 0) + 1,
+        )
         log.info("Download gestartet: %s", video["source_url"])
         try:
             url = normalize_source_url(video["source_url"])
             result = self.backend.download(url, video_id, self.settings)
+            # Ein vom Nutzer bzw. Import vorgegebener Titel hat Vorrang vor dem yt-dlp-Titel
+            if video["title"] and video["title"] != video["source_url"]:
+                result.pop("title", None)
             self.db.update_video(
                 video_id,
                 status="downloaded",
