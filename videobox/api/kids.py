@@ -14,7 +14,6 @@ def _all_tag(db: DbDep) -> dict:
     return {
         "id": tag_service.ALL_TAG_ID,
         "name": "Alle",
-        "sort_order": -1,
         "has_own_image": False,
         "video_count": counts.get("downloaded", 0),
         "image_url": None,

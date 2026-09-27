@@ -4,6 +4,8 @@ Jede Funktion oeffnet ihre eigene kurze Verbindung, damit sie sowohl aus dem
 Request-Handler als auch aus dem Download-Worker-Thread sicher nutzbar ist.
 """
 
+import hashlib
+import re
 import sqlite3
 import uuid
 from collections.abc import Iterator
@@ -41,8 +43,12 @@ CREATE TABLE IF NOT EXISTS tags (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     name       TEXT NOT NULL UNIQUE,
     image_path TEXT,
-    sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS video_tags (
@@ -65,6 +71,21 @@ MIGRATIONS: list[tuple[str, str, str]] = [
     ("videos", "attempts", "INTEGER NOT NULL DEFAULT 0"),
     ("videos", "import_id", "TEXT REFERENCES imports(id) ON DELETE SET NULL"),
 ]
+
+
+_NUM_RE = re.compile(r"(\d+)")
+_FOLD = str.maketrans({"ä": "a", "ö": "o", "ü": "u", "ß": "ss"})
+
+
+def tag_sort_key(name: str) -> tuple:
+    """Alphabetisch ohne Beachtung von Gross-/Kleinschreibung und Umlauten; Zahlen zuerst und
+    numerisch verglichen ("2 Dinge" vor "10 Dinge" vor "Apfel")."""
+    folded = name.strip().casefold().translate(_FOLD)
+    parts = tuple(int(p) if p.isdigit() else p for p in _NUM_RE.split(folded) if p)
+    starts_with_digit = bool(folded) and folded[0].isdigit()
+    # Gemischte Typen vergleichbar machen: (0, zahl) bzw. (1, text)
+    key = tuple((0, p) if isinstance(p, int) else (1, p) for p in parts)
+    return (0 if starts_with_digit else 1, key)
 
 
 def now_iso() -> str:
@@ -222,11 +243,10 @@ class Database:
 
     # ---------- Tags ----------
 
-    def create_tag(self, name: str, sort_order: int = 0) -> dict[str, Any]:
+    def create_tag(self, name: str) -> dict[str, Any]:
         with self.connect() as conn:
             cur = conn.execute(
-                "INSERT INTO tags (name, sort_order, created_at) VALUES (?, ?, ?)",
-                (name, sort_order, now_iso()),
+                "INSERT INTO tags (name, created_at) VALUES (?, ?)", (name, now_iso())
             )
             tag_id = cur.lastrowid
         return self.get_tag(tag_id)  # type: ignore[arg-type, return-value]
@@ -246,8 +266,8 @@ class Database:
 
     def list_tags(self) -> list[dict[str, Any]]:
         with self.connect() as conn:
-            rows = conn.execute("SELECT * FROM tags ORDER BY sort_order, name").fetchall()
-            return [dict(r) for r in rows]
+            rows = conn.execute("SELECT * FROM tags").fetchall()
+        return sorted((dict(r) for r in rows), key=lambda t: tag_sort_key(t["name"]))
 
     def update_tag(self, tag_id: int, **fields: Any) -> None:
         if not fields:
@@ -270,17 +290,23 @@ class Database:
             return {r["tag_id"]: r["n"] for r in rows}
 
     def thumbnails_for_tag(self, tag_id: int | None, limit: int = 4) -> list[str]:
-        """Thumbnails der aeltesten fertigen Videos eines Tags (None = alle Videos)."""
+        """Thumbnails von bis zu `limit` fertigen Videos eines Tags (None = alle Videos).
+
+        Die Auswahl ist zufaellig, aber ueber den gespeicherten Collage-Seed stabil - sie
+        aendert sich erst, wenn der Seed neu gesetzt wird (z.B. nach einem Import).
+        """
         sql = (
-            "SELECT v.thumbnail_path FROM videos v "
+            "SELECT v.id, v.thumbnail_path FROM videos v "
             + ("JOIN video_tags vt ON vt.video_id = v.id " if tag_id is not None else "")
             + "WHERE v.status = 'downloaded' AND v.thumbnail_path IS NOT NULL "
             + ("AND vt.tag_id = ? " if tag_id is not None else "")
-            + "ORDER BY v.created_at LIMIT ?"
         )
-        params: tuple[Any, ...] = (tag_id, limit) if tag_id is not None else (limit,)
+        params: tuple[Any, ...] = (tag_id,) if tag_id is not None else ()
+        seed = self.collage_seed()
         with self.connect() as conn:
-            return [r["thumbnail_path"] for r in conn.execute(sql, params)]
+            rows = [(r["id"], r["thumbnail_path"]) for r in conn.execute(sql, params)]
+        rows.sort(key=lambda r: hashlib.md5(f"{seed}:{r[0]}".encode()).hexdigest())
+        return [thumb for _, thumb in rows[:limit]]
 
     def tags_exist(self, tag_ids: list[int]) -> bool:
         if not tag_ids:
@@ -317,3 +343,30 @@ class Database:
         """Entfernt nur den Import-Eintrag; Videos bleiben erhalten (import_id wird NULL)."""
         with self.connect() as conn:
             conn.execute("DELETE FROM imports WHERE id = ?", (import_id,))
+
+    # ---------- Einstellungen ----------
+
+    def get_setting(self, key: str) -> str | None:
+        with self.connect() as conn:
+            row = conn.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
+            return row["value"] if row else None
+
+    def set_setting(self, key: str, value: str) -> None:
+        with self.connect() as conn:
+            conn.execute(
+                "INSERT INTO settings (key, value) VALUES (?, ?) "
+                "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                (key, value),
+            )
+
+    def collage_seed(self) -> str:
+        seed = self.get_setting("collage_seed")
+        if seed is None:
+            seed = self.reshuffle_collages()
+        return seed
+
+    def reshuffle_collages(self) -> str:
+        """Waehlt die Collage-Bilder aller Tags neu (neuer Seed)."""
+        seed = uuid.uuid4().hex
+        self.set_setting("collage_seed", seed)
+        return seed

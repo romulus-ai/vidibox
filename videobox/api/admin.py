@@ -176,7 +176,7 @@ def create_tag(body: TagCreate, db: DbDep):
     name = body.name.strip()
     if any(t["name"].lower() == name.lower() for t in db.list_tags()):
         raise HTTPException(status.HTTP_409_CONFLICT, "Tag existiert bereits")
-    tag = db.create_tag(name, body.sort_order)
+    tag = db.create_tag(name)
     return _tag_out(db, tag)
 
 

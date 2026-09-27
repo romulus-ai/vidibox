@@ -27,7 +27,6 @@ def tag_to_out(db: Database, tag: dict[str, Any], counts: dict[int, int]) -> dic
     return {
         "id": tag["id"],
         "name": tag["name"],
-        "sort_order": tag["sort_order"],
         "has_own_image": bool(image_path),
         "image_url": f"/media/tags/{image_path}" if image_path else None,
         "thumbnail_urls": [] if image_path else collage_thumbnails(db, tag["id"]),

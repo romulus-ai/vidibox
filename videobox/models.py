@@ -17,18 +17,15 @@ class VideoStatus(StrEnum):
 
 class TagCreate(BaseModel):
     name: str = Field(min_length=1, max_length=80)
-    sort_order: int = 0
 
 
 class TagUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=80)
-    sort_order: int | None = None
 
 
 class TagOut(BaseModel):
     id: int
     name: str
-    sort_order: int
     has_own_image: bool
     image_url: str | None
     # Ohne eigenes Bild: bis zu vier Video-Thumbnails fuer eine Collage

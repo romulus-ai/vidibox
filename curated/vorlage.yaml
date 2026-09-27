@@ -4,11 +4,10 @@
 name: Meine Liste
 description: Worum es in dieser Liste geht
 
-# Optional: Tags mit Bild oder Reihenfolge vordefinieren
+# Optional: Tags mit Bild vordefinieren
 tags:
   - name: Beispiel-Tag
     # image: https://example.org/bild.jpg
-    # sort_order: 1
 
 # Tags, die alle Videos der Liste bekommen
 default_tags: [Beispiel-Tag]

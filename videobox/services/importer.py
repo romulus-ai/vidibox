@@ -48,7 +48,6 @@ class ImportError_(Exception):
 class TagDef(BaseModel):
     name: str = Field(min_length=1, max_length=80)
     image: str | None = None
-    sort_order: int | None = None
 
     @field_validator("name")
     @classmethod
@@ -242,8 +241,7 @@ def run_import(
             return tag_ids[key]
         tag = db.get_tag_by_name(name)
         if tag is None:
-            sort_order = max([t["sort_order"] for t in db.list_tags()] or [-1]) + 1
-            tag = db.create_tag(name, sort_order)
+            tag = db.create_tag(name)
             report["tags_created"].append(name)
         tag_ids[key] = tag["id"]
         return tag["id"]
@@ -252,8 +250,6 @@ def run_import(
     for tdef in lst.tags:
         try:
             tid = ensure_tag(tdef.name)
-            if tdef.sort_order is not None:
-                db.update_tag(tid, sort_order=tdef.sort_order)
             tag = db.get_tag(tid)
             if tdef.image and tag and not tag.get("image_path"):
                 _fetch_tag_image(db, settings, tid, tdef.image)
@@ -291,6 +287,9 @@ def run_import(
         except Exception as exc:  # noqa: BLE001
             log.exception("Video-Import fehlgeschlagen: %s", v.url)
             report["errors"].append({"item": v.url, "message": str(exc)[:300]})
+
+    # Collage-Bilder der Tags nach jedem Import neu wuerfeln
+    db.reshuffle_collages()
 
     log.info(
         "Import '%s': %d neu, %d Tags ergaenzt, %d unveraendert, %d Fehler",

@@ -313,7 +313,7 @@
       list.innerHTML = '<p class="hint">Noch keine Tags.</p>';
       return;
     }
-    tags.forEach((t, idx) => {
+    tags.forEach((t) => {
       const item = document.createElement("div");
       item.className = "item tag";
 
@@ -333,12 +333,6 @@
 
       const actions = document.createElement("div");
       actions.className = "actions";
-
-      const up = button("▲", "btn small", () => move(idx, -1));
-      up.disabled = idx === 0;
-      const down = button("▼", "btn small", () => move(idx, 1));
-      down.disabled = idx === tags.length - 1;
-      actions.append(up, down);
 
       actions.appendChild(button("Umbenennen", "btn small", async () => {
         const name = prompt("Neuer Name:", t.name);
@@ -381,18 +375,6 @@
       item.append(thumb, info, actions);
       list.appendChild(item);
     });
-  }
-
-  async function move(idx, dir) {
-    const other = idx + dir;
-    if (other < 0 || other >= tags.length) return;
-    // Reihenfolge komplett neu durchnummerieren, damit sort_order eindeutig ist
-    const order = tags.map((t) => t.id);
-    [order[idx], order[other]] = [order[other], order[idx]];
-    await Promise.all(
-      order.map((id, i) => api(`/api/admin/tags/${id}`, json("PUT", { sort_order: i })))
-    );
-    refreshAll();
   }
 
   // ---------- Import ----------

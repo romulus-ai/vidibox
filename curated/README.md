@@ -16,13 +16,12 @@ https://raw.githubusercontent.com/romulus-ai/vidibox/main/curated/zdf-einfach-er
 name: ZDF Schule – Biologie              # Name des Imports (Pflicht, wird in der Übersicht angezeigt)
 description: Kurze Beschreibung           # optional
 
-# Optional: Tags vorab definieren, z. B. mit Bild oder Reihenfolge.
+# Optional: Tags vorab definieren, z. B. mit Bild.
 # Tags, die nur bei Videos stehen, werden trotzdem automatisch angelegt.
 tags:
   - name: Biologie
     image: https://example.org/bilder/biologie.jpg   # optional, http(s)-URL; wird nur gesetzt,
                                                      # wenn der Tag noch kein eigenes Bild hat
-    sort_order: 1                                    # optional, Reihenfolge der Kacheln
 
 # Tags, die alle Videos dieser Liste bekommen (optional)
 default_tags: [Biologie]
@@ -46,6 +45,7 @@ Regeln:
 - Ein Video bekommt `default_tags` **und** seine eigenen `tags`.
 - Ist ein Video (gleiche URL) bereits in der Box, wird es **nicht erneut geladen** – es bekommt nur
   die fehlenden Tags ergänzt.
+- Tags werden in der Kinder-UI alphabetisch sortiert (Zahlen zuerst).
 - Tags ohne `image` zeigen in der Kinder-UI eine Collage aus den Thumbnails ihrer ersten vier Videos;
   ein Bild lässt sich hier per URL oder später im Admin per Upload setzen.
 - Die Vorschau im Admin zeigt vor dem Import, was neu angelegt bzw. ergänzt würde.

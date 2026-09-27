@@ -12,18 +12,20 @@ def test_tag_crud(admin):
     # Doppelter Name (case-insensitiv) wird abgelehnt
     assert admin.post("/api/admin/tags", json={"name": "deutsch"}).status_code == 409
 
-    r = admin.put(f"/api/admin/tags/{tag['id']}", json={"name": "Lesen", "sort_order": 5})
-    assert r.json()["name"] == "Lesen" and r.json()["sort_order"] == 5
+    r = admin.put(f"/api/admin/tags/{tag['id']}", json={"name": "Lesen"})
+    assert r.json()["name"] == "Lesen"
 
     assert admin.delete(f"/api/admin/tags/{tag['id']}").status_code == 204
     assert admin.get("/api/admin/tags").json() == []
 
 
-def test_tag_sorting(admin):
-    b = admin.post("/api/admin/tags", json={"name": "B", "sort_order": 2}).json()
-    a = admin.post("/api/admin/tags", json={"name": "A", "sort_order": 1}).json()
-    ids = [t["id"] for t in admin.get("/api/admin/tags").json()]
-    assert ids == [a["id"], b["id"]]
+def test_tags_sorted_alphabetically_numbers_first(admin):
+    for name in ["Zebra", "apfel", "10 Dinge", "Ärger", "2 Dinge", "Alter 10-12", "Alter 5-7"]:
+        admin.post("/api/admin/tags", json={"name": name})
+    expected = ["2 Dinge", "10 Dinge", "Alter 5-7", "Alter 10-12", "apfel", "Ärger", "Zebra"]
+    assert [t["name"] for t in admin.get("/api/admin/tags").json()] == expected
+    kids = [t["name"] for t in admin.get("/api/tags").json()]
+    assert kids[0] == "Alle" and kids[1:] == expected
 
 
 def test_tag_image_upload(admin, worker, settings):
@@ -80,17 +82,33 @@ def test_deleting_tag_keeps_videos(admin, worker):
     assert admin.get(f"/api/tags/{tag['id']}/videos").status_code == 404
 
 
-def test_collage_limits_to_four_oldest(admin, worker):
+def test_collage_is_random_but_stable_until_reshuffle(admin, worker, app):
     tag = admin.post("/api/admin/tags", json={"name": "Viele"}).json()
     created = [
         admin.post(
             "/api/admin/videos", json={"url": URL.format(n=i), "tag_ids": [tag["id"]]}
         ).json()["id"]
-        for i in range(6)
+        for i in range(12)
     ]
     run_queue(worker)
-    tags = admin.get("/api/tags").json()
-    assert tags[0]["name"] == "Alle"
-    expected = [f"/media/thumbs/{i}.jpg" for i in created[:4]]
-    assert tags[0]["thumbnail_urls"] == expected
-    assert tags[1]["thumbnail_urls"] == expected and tags[1]["image_url"] is None
+
+    def collage():
+        t = next(t for t in admin.get("/api/tags").json() if t["id"] == tag["id"])
+        return t["thumbnail_urls"]
+
+    first = collage()
+    assert len(first) == 4 and len(set(first)) == 4
+    assert all(u.startswith("/media/thumbs/") for u in first)
+    assert set(u.split("/")[-1][:-4] for u in first) <= set(created)
+    # Stabil zwischen Abfragen (kein Flackern beim Refresh)
+    assert collage() == first
+    # Nach dem Neuwuerfeln (wie nach einem Import) eine andere Auswahl - bei 12 Videos ist die
+    # Wahrscheinlichkeit derselben vier Bilder in gleicher Reihenfolge vernachlaessigbar
+    for _ in range(3):
+        app.state.db.reshuffle_collages()
+        if collage() != first:
+            break
+    else:
+        raise AssertionError("Collage aendert sich nach reshuffle nicht")
+    # "Alle" nutzt dieselbe Logik
+    assert len(admin.get("/api/tags").json()[0]["thumbnail_urls"]) == 4

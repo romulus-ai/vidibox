@@ -11,7 +11,6 @@ name: Testliste
 description: Beschreibung
 tags:
   - name: Biologie
-    sort_order: 5
 default_tags: [Biologie]
 videos:
   - url: https://schule.zdf.de/video/a-100
@@ -84,7 +83,6 @@ def test_import_creates_tags_and_queues_videos(admin, worker):
     assert rep["tags_created"] == ["Biologie", "Körper"]
 
     tags = {t["name"]: t for t in admin.get("/api/admin/tags").json()}
-    assert tags["Biologie"]["sort_order"] == 5
 
     videos = {v["source_url"]: v for v in admin.get("/api/admin/videos").json()}
     a = videos["https://www.zdf.de/video/a-100"]
@@ -109,6 +107,12 @@ def test_import_creates_tags_and_queues_videos(admin, worker):
 
     vids = admin.get(f"/api/admin/imports/{rep['import_id']}/videos").json()
     assert [v["id"] for v in vids] == [a["id"], b["id"]]  # Listenreihenfolge
+
+
+def test_import_reshuffles_collages(admin, app):
+    before = app.state.db.collage_seed()
+    admin.post("/api/admin/import", json={"yaml": LIST})
+    assert app.state.db.collage_seed() != before
 
 
 def test_reimport_only_adds_tags(admin, worker, backend):
@@ -168,7 +172,7 @@ def test_import_file_upload(admin):
 
 def test_import_from_url_and_tag_image(admin, monkeypatch, settings):
     yaml_with_image = LIST.replace(
-        "sort_order: 5", "sort_order: 5\n    image: https://img.example/bio.png"
+        "- name: Biologie", "- name: Biologie\n    image: https://img.example/bio.png"
     )
 
     def handler(request: httpx.Request) -> httpx.Response:

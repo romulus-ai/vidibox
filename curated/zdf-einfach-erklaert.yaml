@@ -7,11 +7,8 @@ description: Kurze Erklärvideos zu Körper, Natur und Alltag, je etwa 1,5 Minut
 
 tags:
   - name: Körper
-    sort_order: 1
   - name: Natur
-    sort_order: 2
   - name: Alltag
-    sort_order: 3
 
 default_tags: [einfach erklärt]
 
