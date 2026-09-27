@@ -1,0 +1,49 @@
+# Vorkuratierte Liste fuer die Videobox
+name: Bienen, Insekten und Wiese
+description: Kurze Videos ueber Bienen, Schmetterlinge, Libellen und andere kleine Tiere.
+
+tags:
+  - name: Tiere
+  - name: Insekten
+  - name: Bienen
+  - name: Schmetterlinge
+  - name: Libellen
+  - name: Wiese
+  - name: Natur
+  - name: Nachhaltigkeit
+  - name: Die Maus
+  - name: Loewenzahn
+  - name: ZDF Schule
+  - name: Kurzvideo
+  - name: Alter 5-7
+
+default_tags: [Insekten, Natur, Alter 5-7]
+
+videos:
+  - url: https://www.ardmediathek.de/video/die-maus/tierfutter-aus-fliegenlarven/wdr/Y3JpZDovL3dkci5kZS9CZWl0cmFnLXNvcGhvcmEtM2EyYzUyZGYtYTBmMy00ZjhjLThmNzgtNmFmMDgwMTA3OWJm
+    title: "Tierfutter aus Fliegenlarven"
+    tags: [Die Maus, Insekten, Nachhaltigkeit]
+
+  - url: https://schule.zdf.de/video/so-entsteht-bienenhonig-creative-commons-clip-100
+    title: "So entsteht Bienenhonig"
+    tags: [ZDF Schule, Bienen, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/warum-sind-insekten-wichtig-creative-commons-clip-100
+    title: "Warum sind Insekten wichtig?"
+    tags: [ZDF Schule, Insekten, Bienen, Pflanzen, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/wiesenbewohner-104
+    title: "Wiesenbewohner"
+    tags: [Loewenzahn, ZDF Schule, Wiese, Schmetterlinge, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/wundersame-verwandlung-102
+    title: "Wundersame Verwandlung"
+    tags: [Loewenzahn, ZDF Schule, Schmetterlinge, Raupen, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/libelle-doku-100
+    title: "Libelle"
+    tags: [Loewenzahn, ZDF Schule, Libellen, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/libelle-doku-106
+    title: "So pflanzen sich Libellen fort"
+    tags: [Loewenzahn, ZDF Schule, Libellen, Kurzvideo]

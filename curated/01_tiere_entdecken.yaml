@@ -1,0 +1,50 @@
+# Vorkuratierte Liste fuer die Videobox
+name: Tiere entdecken
+description: Spannende Tiere an Land und im Wasser fuer Kinder von ca. 5-7 Jahren.
+
+tags:
+  - name: Tiere
+  - name: Natur
+  - name: Meer
+  - name: Saeugetiere
+  - name: Amphibien
+  - name: Reptilien
+  - name: Artenschutz
+  - name: Die Maus
+  - name: Loewenzahn
+  - name: 1-2-oder-3
+  - name: ZDF Schule
+  - name: Kurzvideo
+  - name: Langformat
+  - name: Alter 5-7
+
+default_tags: [Tiere, Natur, Alter 5-7]
+
+videos:
+  - url: https://www.ardmediathek.de/video/die-sendung-mit-der-maus/seekuehe-wie-leben-sie-mit-gebaerdensprache/wdr/Y3JpZDovL3dkci5kZS9CZWl0cmFnLXNvcGhvcmEtYTk1NTcwYmQtYWJmZC00OWRmLTk1ZWQtNjY4OTA3OGZjY2Qy
+    title: "Seekuehe: Wie leben sie?"
+    tags: [Die Maus, Meer, Saeugetiere, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/wale-doku-schweinswale-100
+    title: "Schweinswale und Delfine"
+    tags: [Loewenzahn, ZDF Schule, Meer, Saeugetiere, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/hafer-futter-100
+    title: "Was Pferde fressen"
+    tags: [Loewenzahn, ZDF Schule, Pferde, Kurzvideo]
+
+  - url: https://www.zdf.de/video/shows/1-2-oder-3-120/faszinierende-froesche-100
+    title: "Faszinierende Froesche"
+    tags: [1-2-oder-3, Amphibien, Langformat]
+
+  - url: https://www.zdf.de/video/shows/1-2-oder-3-120/coole-krokodile-100
+    title: "Coole Krokodile"
+    tags: [1-2-oder-3, Reptilien, Langformat]
+
+  - url: https://www.zdf.de/video/shows/1-2-oder-3-120/clevere-hoernchen-100
+    title: "Clevere Hoernchen"
+    tags: [1-2-oder-3, Saeugetiere, Wald, Langformat]
+
+  - url: https://schule.zdf.de/video/tierbeobachtung-artenschutz-einfach-erklaert-100
+    title: "Tiere beobachten fuer Artenschutz"
+    tags: [ZDF Schule, Artenschutz, Kurzvideo]

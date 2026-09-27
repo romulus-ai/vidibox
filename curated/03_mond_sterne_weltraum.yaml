@@ -1,0 +1,57 @@
+# Vorkuratierte Liste fuer die Videobox
+name: Mond, Sterne und Weltraum
+description: Einfache Einstiege in Mond, Sterne, Raumfahrt und unser Sonnensystem.
+
+tags:
+  - name: Weltraum
+  - name: Mond
+  - name: Sterne
+  - name: Raumfahrt
+  - name: Astronauten
+  - name: Erde
+  - name: Die Maus
+  - name: Loewenzahn
+  - name: 1-2-oder-3
+  - name: ZDF Schule
+  - name: Kurzvideo
+  - name: Langformat
+  - name: Alter 5-7
+
+default_tags: [Weltraum, Alter 5-7]
+
+videos:
+  - url: https://www.ardmediathek.de/video/die-maus/warum-sieht-der-mond-immer-anders-aus/wdr/Y3JpZDovL3dkci5kZS9CZWl0cmFnLTg3Y2VkN2I1LTMxZjYtNGM2Ny1iNzEwLWVmODEzN2U2ZjE5OQ
+    title: "Warum sieht der Mond immer anders aus?"
+    tags: [Die Maus, Mond]
+
+  - url: https://www.ardmediathek.de/video/die-maus/sachgeschichte-mondgestein/wdr/Y3JpZDovL3dkci5kZS9CZWl0cmFnLWYwNTg5YjQ4LTVmZDItNDdjOS05M2Q0LTZmN2RiMDFhMjM5Ng
+    title: "Mondgestein"
+    tags: [Die Maus, Mond, Raumfahrt]
+
+  - url: https://www.ardmediathek.de/video/die-sendung-mit-der-maus/sternbild-orion/das-erste/Y3JpZDovL3dkci5kZS9CZWl0cmFnLTgyYThiYmFkLWI5NjItNDllMy1iZjk2LTI4ZDAwOWM1NDFhZQ
+    title: "Sternbild Orion"
+    tags: [Die Maus, Sterne]
+
+  - url: https://www.ardmediathek.de/video/die-maus/raumschiffbau-fuer-die-mondmission/wdr/Y3JpZDovL3dkci5kZS9CZWl0cmFnLXNvcGhvcmEtODVlNGRkYmUtMTAwNC00MmE5LWFiYWUtZDE2NTBlZjYwY2E5
+    title: "Raumschiffbau fuer die Mondmission"
+    tags: [Die Maus, Mond, Raumfahrt, Technik]
+
+  - url: https://www.zdf.de/video/magazine/loewenzahn-mit-fritz-fuchs-100/doku-weltall-104
+    title: "Der Mensch im Weltraum"
+    tags: [Loewenzahn, Astronauten, Mond, Raumfahrt, Kurzvideo]
+
+  - url: https://www.zdf.de/video/magazine/loewenzahn-mit-fritz-fuchs-100/sonne-mond-und-erde-102
+    title: "Sonne, Mond und Erde"
+    tags: [Loewenzahn, Mond, Erde, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/warum-fliegen-wir-in-den-weltraum-100
+    title: "Warum fliegen wir in den Weltraum?"
+    tags: [ZDF Schule, Astronauten, Raumfahrt, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/weltraumschrott-einfach-erklaert-100
+    title: "Das Problem mit dem Weltraumschrott"
+    tags: [ZDF Schule, Weltraum, Raumfahrt, Kurzvideo]
+
+  - url: https://www.zdf.de/video/shows/1-2-oder-3-120/mission-oben-102
+    title: "Mission oben"
+    tags: [1-2-oder-3, Weltraum, Astronauten, Fliegen, Langformat]

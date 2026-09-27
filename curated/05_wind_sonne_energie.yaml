@@ -1,0 +1,45 @@
+# Vorkuratierte Liste fuer die Videobox
+name: Wind, Sonne und Energie
+description: Erste Videos darueber, wo Strom herkommt und wie Natur und Energie zusammenhaengen.
+
+tags:
+  - name: Energie
+  - name: Strom
+  - name: Wind
+  - name: Sonne
+  - name: Solarenergie
+  - name: Windenergie
+  - name: Umwelt
+  - name: Klima
+  - name: Nachhaltigkeit
+  - name: Loewenzahn
+  - name: ZDF Schule
+  - name: Kurzvideo
+  - name: Alter 5-7
+
+default_tags: [Energie, Umwelt, Alter 5-7]
+
+videos:
+  - url: https://schule.zdf.de/video/windrad-strom-einfach-erklaert-100
+    title: "So kommt der Strom aus dem Windrad"
+    tags: [ZDF Schule, Wind, Windenergie, Strom, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/wie-funktionert-ein-windrad-creative-commons-clip-100
+    title: "Wie funktioniert ein Windrad?"
+    tags: [ZDF Schule, Wind, Windenergie, Technik, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/solarzelle-einfach-erklaert-100
+    title: "Wie funktioniert eine Solarzelle?"
+    tags: [ZDF Schule, Sonne, Solarenergie, Strom, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/biogas-herstellung-102
+    title: "Biogas-Herstellung"
+    tags: [Loewenzahn, ZDF Schule, Energie, Nachhaltigkeit, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/einfluss-von-lebensmitteln-auf-das-klima-creative-commons-clip-100
+    title: "Einfluss von Lebensmitteln auf unser Klima"
+    tags: [ZDF Schule, Klima, Essen, Nachhaltigkeit, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/ozonloch-ozonschicht-einfach-erklaert-100
+    title: "Wozu die Ozonschicht gut ist"
+    tags: [ZDF Schule, Klima, Erde, Sonne, Kurzvideo]

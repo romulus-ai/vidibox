@@ -1,0 +1,54 @@
+# Vorkuratierte Liste fuer die Videobox
+name: Roboter, Maschinen und Technik
+description: Wie Roboter, Drohnen, Maschinen und Bauwerke funktionieren.
+
+tags:
+  - name: Technik
+  - name: Roboter
+  - name: Maschinen
+  - name: Drohnen
+  - name: Bauen
+  - name: Erfindungen
+  - name: Strom
+  - name: Die Maus
+  - name: Loewenzahn
+  - name: 1-2-oder-3
+  - name: ZDF Schule
+  - name: Kurzvideo
+  - name: Langformat
+  - name: Alter 5-7
+
+default_tags: [Technik, Alter 5-7]
+
+videos:
+  - url: https://www.ardmediathek.de/video/die-maus/roboter-im-krankenhaus/wdr/Y3JpZDovL3dkci5kZS9CZWl0cmFnLTUwMzJhMTE1LTA3ZTItNGMzNS1hNTNkLTBjMTAzMzhmN2FhNg
+    title: "Roboter im Krankenhaus"
+    tags: [Die Maus, Roboter]
+
+  - url: https://www.ardmediathek.de/video/die-maus/kameraroboter/wdr/Y3JpZDovL3dkci5kZS9CZWl0cmFnLXNvcGhvcmEtZjYwNzM3ZjQtODI3OC00ODA2LWE2NWItMjExNGFjMzcyNGUw
+    title: "Kameraroboter"
+    tags: [Die Maus, Roboter, Film]
+
+  - url: https://www.ardmediathek.de/video/die-maus/stell-dir-vor-du-lernst-mit-robotern/wdr/Y3JpZDovL3dkci5kZS9CZWl0cmFnLWE4ZDUxZDM2LWRkYzAtNDZhMi04ZmZjLTU4ODZjMDgyYjc1OQ
+    title: "Stell dir vor: Du lernst mit Robotern"
+    tags: [Die Maus, Roboter, Zukunft]
+
+  - url: https://www.zdf.de/kinder/loewenzahn-mit-fritz-fuchs/nuetzliche-drohnen-100.html/
+    title: "Nuetzliche Helfer"
+    tags: [Loewenzahn, Drohnen, Technik]
+
+  - url: https://www.zdf.de/video/shows/1-2-oder-3-120/coole-erfindungen-mit-ehrlich-100
+    title: "Coole Erfindungen"
+    tags: [1-2-oder-3, Erfindungen, Technik, Langformat]
+
+  - url: https://www.zdf.de/video/shows/1-2-oder-3-120/baustelle-bagger-beton-und-co-100
+    title: "Baustelle - Bagger, Beton und Co."
+    tags: [1-2-oder-3, Bauen, Maschinen, Langformat]
+
+  - url: https://www.zdf.de/video/shows/1-2-oder-3-120/ueber-bruecken-102
+    title: "Ueber Bruecken"
+    tags: [1-2-oder-3, Bauen, Technik, Langformat]
+
+  - url: https://schule.zdf.de/video/was-ist-ein-stromkreis-creative-commons-clip-100
+    title: "Was ist ein Stromkreis?"
+    tags: [ZDF Schule, Strom, Technik, Kurzvideo]

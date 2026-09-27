@@ -1,0 +1,49 @@
+# Vorkuratierte Liste fuer die Videobox
+name: Natur verwandelt sich
+description: Pflanzen, Tiere und Jahreszeiten beobachten und verstehen.
+
+tags:
+  - name: Natur
+  - name: Pflanzen
+  - name: Tiere
+  - name: Jahreszeiten
+  - name: Garten
+  - name: Nahrung
+  - name: Schmetterlinge
+  - name: Wald
+  - name: Loewenzahn
+  - name: 1-2-oder-3
+  - name: Kurzvideo
+  - name: Langformat
+  - name: Alter 5-7
+
+default_tags: [Natur, Alter 5-7]
+
+videos:
+  - url: https://www.zdf.de/kinder/loewenzahn/winter-tiere-futter-100.html
+    title: "Winterfutter"
+    tags: [Loewenzahn, Tiere, Jahreszeiten, Winter]
+
+  - url: https://schule.zdf.de/video/tomate-geschichte-trick-100
+    title: "Die Geschichte der Tomate"
+    tags: [Loewenzahn, Pflanzen, Garten, Nahrung, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/wiesenbewohner-104
+    title: "Wiesenbewohner"
+    tags: [Loewenzahn, Tiere, Schmetterlinge, Wiese, Kurzvideo]
+
+  - url: https://schule.zdf.de/video/wundersame-verwandlung-102
+    title: "Wundersame Verwandlung"
+    tags: [Loewenzahn, Tiere, Schmetterlinge, Kurzvideo]
+
+  - url: https://www.zdf.de/video/shows/1-2-oder-3-120/magische-moore-102
+    title: "Magische Moore"
+    tags: [1-2-oder-3, Pflanzen, Tiere, Umwelt, Langformat]
+
+  - url: https://www.zdf.de/video/shows/1-2-oder-3-120/lebensraum-wasser-100
+    title: "Lebensraum Wasser"
+    tags: [1-2-oder-3, Tiere, Pflanzen, Wasser, Langformat]
+
+  - url: https://www.zdf.de/video/shows/1-2-oder-3-120/abenteuer-artenvielfalt-100
+    title: "Abenteuer Artenvielfalt"
+    tags: [1-2-oder-3, Tiere, Pflanzen, Artenschutz, Langformat]
