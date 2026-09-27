@@ -4,8 +4,27 @@ Ziel: Der Videobox-Container läuft auf dem Pi, Chromium startet automatisch im 
 `http://localhost:8000/` auf dem Touchscreen. Ton kommt über HiFiBerry Amp + Lautsprecher.
 
 Getestet gedacht für **Raspberry Pi OS (64-bit, Bookworm) mit Desktop** auf Pi 4 oder Pi 5.
-Für Browser-Wiedergabe bis 720p ist der Pi 5 die entspanntere Wahl; auf dem Pi 4 sollte
-`VIDEOBOX_MAX_RESOLUTION=720` (Default) nicht überschritten werden.
+
+## 0. Anforderungen
+
+Der Server-Container ist genügsam (~250 MB RAM, ffmpeg remuxt nur, kein Transcoding). Der
+limitierende Faktor ist **Chromium, das auf demselben Gerät 720p-H.264 dekodiert**.
+
+| | Minimum | Empfehlung |
+|---|---|---|
+| Board | Raspberry Pi 4 (2 GB) | **Raspberry Pi 5 (4 GB)** oder Pi 4 (4 GB) |
+| OS | 64-bit (das Image gibt es nur für arm64/amd64) | Raspberry Pi OS 64-bit Bookworm mit Desktop |
+| RAM | 2 GB | 4 GB |
+| Speicher | 32 GB SD (~25 h Video) | 64 GB+ oder USB-SSD; ca. **1 GB pro Stunde Video** bei 720p |
+| Netzteil | Pi 4: 5 V/3 A | Pi 5: offizielles 5 V/5 A (Verstärker-HAT hängt mit dran) |
+
+- **Pi 4** nutzt den H.264-Hardwaredecoder in Chromium; **Pi 5** hat keinen, schafft 720p aber
+  per Software problemlos. `VIDEOBOX_MAX_RESOLUTION=720` (Default) auf beiden nicht überschreiten.
+- **Pi 3B+ (1 GB)** läuft nur mit `VIDEOBOX_MAX_RESOLUTION=480` und ruckelt bei der UI; Pi Zero 2 W
+  (512 MB) ist für Chromium + Docker zu klein.
+- **Orange Pi / andere SBCs** (arm64 + Docker) können den Container und Chromium ausführen, aber
+  **HiFiBerry-HATs setzen den Raspberry-Pi-Header samt Device-Tree-Overlays voraus** – auf anderen
+  Boards ist das nicht plug-and-play. Dort eher einen USB-DAC/-Verstärker verwenden.
 
 ## 1. Betriebssystem
 
@@ -33,12 +52,16 @@ In `/boot/firmware/config.txt` (ältere Images: `/boot/config.txt`):
 # Onboard-Audio aus
 dtparam=audio=off
 
-# HiFiBerry Amp2 / Amp4 / DAC+
-dtoverlay=hifiberry-dacplus
-# Amp+ (älteres Modell): dtoverlay=hifiberry-amp
-# Amp100:                dtoverlay=hifiberry-amp100
-# Pi 5: zusätzlich ggf.  dtoverlay=vc4-kms-v3d,noaudio
+# Genau EIN Overlay passend zum Board:
+dtoverlay=hifiberry-dac        # MiniAmp, DAC (ohne "+")
+# dtoverlay=hifiberry-dacplus  # Amp2 / Amp4 / DAC+
+# dtoverlay=hifiberry-amp      # Amp+ (älteres Modell)
+# dtoverlay=hifiberry-amp100   # Amp100
 ```
+
+**MiniAmp:** 2×3 W an 4–8 Ω, wird direkt vom Pi versorgt (kein eigenes Netzteil, dafür ein
+kräftiges für den Pi). Er hat **keinen Hardware-Lautstärkeregler** – `amixer` bietet dafür keinen
+Mixer an; die Lautstärke wird in Software geregelt (PipeWire bzw. Browser, siehe unten).
 
 Zusätzlich HDMI-Audio unterdrücken, damit ALSA-Gerät 0 der HiFiBerry ist:
 
@@ -51,23 +74,23 @@ Nach dem Neustart prüfen:
 ```bash
 aplay -l                      # sollte "sndrpihifiberry" zeigen
 speaker-test -c 2 -t wav -l 1 # Testton links/rechts
-amixer scontrols              # Name des Mixers (z.B. 'Master' oder 'Digital')
+wpctl status                  # PipeWire: HiFiBerry sollte Default-Sink sein
 ```
+
+Ist die HiFiBerry nicht das Standard-Ausgabegerät: Rechtsklick auf das Lautsprechersymbol im
+Desktop → HiFiBerry wählen, oder `wpctl set-default <ID aus wpctl status>`.
 
 ### Lautstärke
 
 Die Lauter/Leiser-Buttons der Kinder-UI regeln die Lautstärke **im Browser** (gedeckelt durch
 `VIDEOBOX_MAX_VOLUME`). Der Container braucht deshalb keinen Zugriff auf die Soundkarte. Die
 Host-Lautstärke ist der physische Deckel und wird einmal fest eingestellt, z. B. im Kiosk-Skript
-vor dem Chromium-Start (Mixername aus `amixer scontrols`):
+vor dem Chromium-Start:
 
 ```bash
-amixer -q set Master 80%      # bzw. 'Digital' bei DAC+/Amp2
+wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.8     # PipeWire (Bookworm-Standard), funktioniert auch beim MiniAmp
+# amixer -q set Digital 80%                   # nur Karten mit Hardware-Mixer (DAC+/Amp2), reines ALSA
 ```
-
-Falls Chromium den Ton über PipeWire ausgibt (Standard auf Bookworm), muss in den Desktop-
-Lautstärke-Einstellungen (Rechtsklick auf das Lautsprechersymbol) die HiFiBerry als Ausgabegerät
-gewählt werden.
 
 ## 3. Touchscreen
 
@@ -138,7 +161,7 @@ unterscheidet sich je nach Compositor.
 until curl -fsS http://localhost:8000/api/health >/dev/null; do sleep 2; done
 
 # Host-Lautstärke fest einstellen (physischer Deckel; Feinregelung macht die Kinder-UI im Browser)
-amixer -q set Master 80% 2>/dev/null || true
+wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.8 2>/dev/null || true
 
 # Chromium-Absturzhinweis unterdrücken
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]*"/"exit_type":"Normal"/' \
@@ -220,7 +243,7 @@ Mauszeiger auf dem Touchscreen ausblenden (X11): `sudo apt install unclutter` un
 
 | Symptom                              | Prüfen                                                          |
 |--------------------------------------|-----------------------------------------------------------------|
-| Kein Ton                             | `aplay -l`, Ausgabegerät im Desktop, Host-Lautstärke (`amixer get Master`) nicht auf 0 |
+| Kein Ton                             | `aplay -l`, `wpctl status` (HiFiBerry Default-Sink?), Host-Lautstärke nicht auf 0, Overlay passt zum Board? |
 | Zu leise trotz Lauter-Button         | `VIDEOBOX_MAX_VOLUME` erhöhen bzw. Host-Lautstärke im Kiosk-Skript anheben |
 | Download bleibt auf „Fehler“         | `docker logs videobox`; ggf. Image aktualisieren (neues yt-dlp)  |
 | Video ruckelt                        | `VIDEOBOX_MAX_RESOLUTION=540` setzen und neu laden               |
