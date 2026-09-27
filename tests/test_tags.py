@@ -33,10 +33,10 @@ def test_tag_image_upload(admin, worker, settings):
     admin.post("/api/admin/videos", json={"url": URL.format(n=2), "tag_ids": [tag["id"]]})
     run_queue(worker)
 
-    # Ohne eigenes Bild gibt es kein automatisches Bild aus den Videos
+    # Ohne eigenes Bild: Collage aus den vorhandenen Thumbnails (hier zwei)
     t = admin.get("/api/admin/tags").json()[0]
     assert t["has_own_image"] is False
-    assert t["image_url"] is None and t["thumbnail_urls"] == []
+    assert t["image_url"] is None and len(t["thumbnail_urls"]) == 2
     assert t["video_count"] == 2
 
     # Eigenes Bild hochladen -> wird bevorzugt und quadratisch skaliert
@@ -63,10 +63,10 @@ def test_tag_image_upload(admin, worker, settings):
     )
     assert r.status_code == 400
 
-    # Bild entfernen -> wieder Platzhalter
+    # Bild entfernen -> wieder Collage
     r = admin.delete(f"/api/admin/tags/{tag['id']}/image")
     assert r.json()["has_own_image"] is False
-    assert r.json()["image_url"] is None
+    assert r.json()["image_url"] is None and len(r.json()["thumbnail_urls"]) == 2
     assert not (settings.tags_dir / f"{tag['id']}.jpg").exists()
 
 
@@ -80,7 +80,7 @@ def test_deleting_tag_keeps_videos(admin, worker):
     assert admin.get(f"/api/tags/{tag['id']}/videos").status_code == 404
 
 
-def test_all_tag_collage_limits_to_four_oldest(admin, worker):
+def test_collage_limits_to_four_oldest(admin, worker):
     tag = admin.post("/api/admin/tags", json={"name": "Viele"}).json()
     created = [
         admin.post(
@@ -91,5 +91,6 @@ def test_all_tag_collage_limits_to_four_oldest(admin, worker):
     run_queue(worker)
     tags = admin.get("/api/tags").json()
     assert tags[0]["name"] == "Alle"
-    assert tags[0]["thumbnail_urls"] == [f"/media/thumbs/{i}.jpg" for i in created[:4]]
-    assert tags[1]["thumbnail_urls"] == [] and tags[1]["image_url"] is None
+    expected = [f"/media/thumbs/{i}.jpg" for i in created[:4]]
+    assert tags[0]["thumbnail_urls"] == expected
+    assert tags[1]["thumbnail_urls"] == expected and tags[1]["image_url"] is None

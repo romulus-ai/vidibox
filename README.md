@@ -10,7 +10,8 @@ Chromium im Kiosk-Modus angezeigt.
 - **Admin-UI** (`/admin`, PIN-geschützt): URL einfügen → Download, Tags anlegen/zuweisen, Tag-Bilder.
 - **Listen-Import**: vorkuratierte YAML-Listen (Datei, Text oder URL) legen Tags an und stellen alle
   Videos in die Warteschlange; Fortschritt pro Import sichtbar. Beispiele und Format in [`curated/`](curated/).
-- Tag-Bilder per Upload im Admin oder per URL in der Import-Liste; ohne Bild gibt es einen Platzhalter.
+- Tag-Bilder per Upload im Admin oder per URL in der Import-Liste; ohne Bild zeigt die Kachel eine
+  Collage aus den Thumbnails der ersten vier Videos.
 - Die Download-Warteschlange liegt in SQLite und überlebt Neustarts: unterbrochene Downloads werden
   beim Start automatisch fortgesetzt.
 

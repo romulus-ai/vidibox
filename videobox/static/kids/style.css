@@ -94,7 +94,7 @@ html, body {
 .tile.tag .img { aspect-ratio: 1 / 1; }
 .tile .img.placeholder { color: rgba(0,0,0,.45); }
 
-/* Collage: 2x2 Thumbnails der ersten Videos (nur "Alle"-Kachel) */
+/* Collage: 2x2 Thumbnails der ersten Videos (Tags ohne eigenes Bild) */
 .tile .img.collage {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -15,13 +15,14 @@ ALL_TAG_ID = 0  # virtuelle "Alle"-Kachel in der Kinder-UI
 COLLAGE_SIZE = 4
 
 
-def all_tag_collage(db: Database) -> list[str]:
-    """Thumbnails der ersten Videos fuer die virtuelle 'Alle'-Kachel (die kein eigenes Bild hat)."""
-    return [f"/media/thumbs/{t}" for t in db.thumbnails_for_tag(None, COLLAGE_SIZE)]
+def collage_thumbnails(db: Database, tag_id: int | None) -> list[str]:
+    """Thumbnails der ersten (bis zu vier) Videos eines Tags; None = alle Videos."""
+    return [f"/media/thumbs/{t}" for t in db.thumbnails_for_tag(tag_id, COLLAGE_SIZE)]
 
 
 def tag_to_out(db: Database, tag: dict[str, Any], counts: dict[int, int]) -> dict[str, Any]:
-    """Tags zeigen nur ein eigenes Bild; ohne Bild bleibt image_url leer (Platzhalter im UI)."""
+    """Eigenes Bild -> image_url. Sonst Collage aus 1-4 Video-Thumbnails (thumbnail_urls).
+    Ohne Videos bleibt beides leer (Platzhalter im UI)."""
     image_path = tag.get("image_path")
     return {
         "id": tag["id"],
@@ -29,7 +30,7 @@ def tag_to_out(db: Database, tag: dict[str, Any], counts: dict[int, int]) -> dic
         "sort_order": tag["sort_order"],
         "has_own_image": bool(image_path),
         "image_url": f"/media/tags/{image_path}" if image_path else None,
-        "thumbnail_urls": [],
+        "thumbnail_urls": [] if image_path else collage_thumbnails(db, tag["id"]),
         "video_count": counts.get(tag["id"], 0),
     }
 

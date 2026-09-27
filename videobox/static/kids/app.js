@@ -42,7 +42,7 @@
     btn.className = `tile ${cls || ""}`;
     const img = document.createElement("div");
     img.className = "img";
-    if (images && images.length > 1) {
+    if (images && images.length > 0) {
       // Collage wie ein Ordner-Icon: 2x2 Zellen mit den ersten Video-Thumbnails,
       // fehlende Zellen bleiben leere Platzhalter
       img.classList.add("collage");

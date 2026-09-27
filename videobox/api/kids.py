@@ -18,7 +18,7 @@ def _all_tag(db: DbDep) -> dict:
         "has_own_image": False,
         "video_count": counts.get("downloaded", 0),
         "image_url": None,
-        "thumbnail_urls": tag_service.all_tag_collage(db),
+        "thumbnail_urls": tag_service.collage_thumbnails(db, None),
     }
 
 

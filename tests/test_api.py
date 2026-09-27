@@ -56,8 +56,9 @@ def test_video_lifecycle(admin, worker):
     assert kids_tags[0]["id"] == 0 and kids_tags[0]["name"] == "Alle"
     assert kids_tags[0]["video_count"] == 1
     assert kids_tags[1]["video_count"] == 1
-    assert kids_tags[1]["image_url"] is None  # kein automatisches Bild
-    assert kids_tags[0]["thumbnail_urls"] == [v["thumbnail_url"]]  # nur "Alle" hat eine Collage
+    assert kids_tags[1]["image_url"] is None
+    assert kids_tags[1]["thumbnail_urls"] == [v["thumbnail_url"]]  # Collage mit einem Bild
+    assert kids_tags[0]["thumbnail_urls"] == [v["thumbnail_url"]]
 
     # Media mit Range abrufbar
     m = admin.get(v["media_url"], headers={"Range": "bytes=0-9"})
