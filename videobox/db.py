@@ -269,15 +269,18 @@ class Database:
             ).fetchall()
             return {r["tag_id"]: r["n"] for r in rows}
 
-    def first_thumbnail_for_tag(self, tag_id: int) -> str | None:
+    def thumbnails_for_tag(self, tag_id: int | None, limit: int = 4) -> list[str]:
+        """Thumbnails der aeltesten fertigen Videos eines Tags (None = alle Videos)."""
+        sql = (
+            "SELECT v.thumbnail_path FROM videos v "
+            + ("JOIN video_tags vt ON vt.video_id = v.id " if tag_id is not None else "")
+            + "WHERE v.status = 'downloaded' AND v.thumbnail_path IS NOT NULL "
+            + ("AND vt.tag_id = ? " if tag_id is not None else "")
+            + "ORDER BY v.created_at LIMIT ?"
+        )
+        params: tuple[Any, ...] = (tag_id, limit) if tag_id is not None else (limit,)
         with self.connect() as conn:
-            row = conn.execute(
-                "SELECT v.thumbnail_path FROM videos v JOIN video_tags vt ON vt.video_id = v.id "
-                "WHERE vt.tag_id = ? AND v.status = 'downloaded' AND v.thumbnail_path IS NOT NULL "
-                "ORDER BY v.created_at LIMIT 1",
-                (tag_id,),
-            ).fetchone()
-            return row["thumbnail_path"] if row else None
+            return [r["thumbnail_path"] for r in conn.execute(sql, params)]
 
     def tags_exist(self, tag_ids: list[int]) -> bool:
         if not tag_ids:

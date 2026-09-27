@@ -56,6 +56,7 @@ def test_video_lifecycle(admin, worker):
     assert kids_tags[0]["video_count"] == 1
     assert kids_tags[1]["video_count"] == 1
     assert kids_tags[1]["image_url"] == v["thumbnail_url"]
+    assert kids_tags[0]["thumbnail_urls"] == [v["thumbnail_url"]]
 
     # Media mit Range abrufbar
     m = admin.get(v["media_url"], headers={"Range": "bytes=0-9"})

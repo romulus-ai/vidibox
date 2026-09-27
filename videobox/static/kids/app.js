@@ -31,13 +31,25 @@
     return `${m}:${String(sec).padStart(2, "0")} min`;
   }
 
-  function tile({ image, label, meta, cls, onClick }) {
+  function tile({ image, images, label, meta, cls, onClick }) {
     const btn = document.createElement("button");
     btn.className = `tile ${cls || ""}`;
     const img = document.createElement("div");
     img.className = "img";
-    if (image) img.style.backgroundImage = `url("${image}")`;
-    else img.textContent = (label || "?").slice(0, 1).toUpperCase();
+    if (images && images.length > 1) {
+      // Collage wie ein Ordner-Icon: 2x2 Zellen mit den ersten Video-Thumbnails,
+      // fehlende Zellen bleiben leere Platzhalter
+      img.classList.add("collage");
+      for (let i = 0; i < 4; i++) {
+        const cell = document.createElement("div");
+        if (images[i]) cell.style.backgroundImage = `url("${images[i]}")`;
+        img.appendChild(cell);
+      }
+    } else if (image) {
+      img.style.backgroundImage = `url("${image}")`;
+    } else {
+      img.textContent = (label || "?").slice(0, 1).toUpperCase();
+    }
     btn.appendChild(img);
     const lbl = document.createElement("div");
     lbl.className = "label";
@@ -65,6 +77,7 @@
       grid.appendChild(
         tile({
           image: t.image_url,
+          images: t.has_own_image ? [] : t.thumbnail_urls,
           label: t.name,
           meta: `${t.video_count} Video${t.video_count === 1 ? "" : "s"}`,
           cls: "tag",

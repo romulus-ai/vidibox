@@ -51,6 +51,9 @@ html, body {
   overflow-y: auto;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--tile-min), 1fr));
+  /* Zeilen behalten ihre Inhaltshoehe; sonst quetscht Chromium bei vielen Kacheln
+     alle Zeilen in die Containerhoehe statt zu scrollen */
+  grid-auto-rows: max-content;
   gap: 20px;
   padding: 8px 20px 24px;
   align-content: start;
@@ -86,6 +89,22 @@ html, body {
   color: var(--accent-dark);
 }
 .tile.tag .img { aspect-ratio: 1 / 1; }
+
+/* Collage: 2x2 Thumbnails der ersten Videos (Tags ohne eigenes Bild) */
+.tile .img.collage {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 8px;
+  background: #ffe3c4;
+  /* Hoehe ergibt sich aus den quadratischen Zellen: 2 Zellen + gap + padding = Breite */
+  aspect-ratio: auto;
+}
+.tile .img.collage > div {
+  aspect-ratio: 1 / 1;
+  background: #f3d3ae center / cover no-repeat;
+  border-radius: 10px;
+}
 
 .tile .label {
   padding: 12px 14px;

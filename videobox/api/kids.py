@@ -10,15 +10,14 @@ router = APIRouter(prefix="/api", tags=["kids"])
 
 
 def _all_tag(db: DbDep) -> dict:
-    videos = db.list_videos(status="downloaded")
-    first_thumb = next((v["thumbnail_path"] for v in videos if v.get("thumbnail_path")), None)
+    counts = db.count_by_status()
     return {
         "id": tag_service.ALL_TAG_ID,
         "name": "Alle",
         "sort_order": -1,
         "has_own_image": False,
-        "image_url": f"/media/thumbs/{first_thumb}" if first_thumb else None,
-        "video_count": len(videos),
+        "video_count": counts.get("downloaded", 0),
+        **tag_service.resolve_tag_images(db, None, None),
     }
 
 

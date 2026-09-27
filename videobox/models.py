@@ -31,6 +31,8 @@ class TagOut(BaseModel):
     sort_order: int
     has_own_image: bool
     image_url: str | None
+    # Ohne eigenes Bild: bis zu vier Video-Thumbnails fuer eine Collage
+    thumbnail_urls: list[str] = []
     video_count: int
 
 

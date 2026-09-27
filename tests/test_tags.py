@@ -39,6 +39,7 @@ def test_tag_image_upload_and_fallback(admin, worker, settings):
     t = admin.get("/api/admin/tags").json()[0]
     assert t["has_own_image"] is False
     assert t["image_url"] == v1_thumb
+    assert len(t["thumbnail_urls"]) == 2 and t["thumbnail_urls"][0] == v1_thumb
     assert t["video_count"] == 2
 
     # Eigenes Bild hochladen -> wird bevorzugt und quadratisch skaliert
@@ -49,6 +50,7 @@ def test_tag_image_upload_and_fallback(admin, worker, settings):
     assert r.status_code == 200
     assert r.json()["has_own_image"] is True
     assert r.json()["image_url"] == f"/media/tags/{tag['id']}.jpg"
+    assert r.json()["thumbnail_urls"] == []  # eigenes Bild, keine Collage
 
     from PIL import Image
 
@@ -79,3 +81,19 @@ def test_deleting_tag_keeps_videos(admin, worker):
     v = admin.get(f"/api/admin/videos/{video.json()['id']}").json()
     assert v["status"] == "downloaded" and v["tag_ids"] == []
     assert admin.get(f"/api/tags/{tag['id']}/videos").status_code == 404
+
+
+def test_tag_collage_limits_to_four_oldest(admin, worker):
+    tag = admin.post("/api/admin/tags", json={"name": "Viele"}).json()
+    created = [
+        admin.post(
+            "/api/admin/videos", json={"url": URL.format(n=i), "tag_ids": [tag["id"]]}
+        ).json()["id"]
+        for i in range(6)
+    ]
+    run_queue(worker)
+    kids_tag = next(t for t in admin.get("/api/tags").json() if t["id"] == tag["id"])
+    assert kids_tag["thumbnail_urls"] == [f"/media/thumbs/{i}.jpg" for i in created[:4]]
+    assert kids_tag["image_url"] == kids_tag["thumbnail_urls"][0]
+    all_tag = admin.get("/api/tags").json()[0]
+    assert len(all_tag["thumbnail_urls"]) == 4
