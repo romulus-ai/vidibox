@@ -31,6 +31,12 @@
     return `${m}:${String(sec).padStart(2, "0")} min`;
   }
 
+  function hueFor(text) {
+    let h = 0;
+    for (const ch of String(text || "")) h = (h * 31 + ch.charCodeAt(0)) % 360;
+    return h;
+  }
+
   function tile({ image, images, label, meta, cls, onClick }) {
     const btn = document.createElement("button");
     btn.className = `tile ${cls || ""}`;
@@ -48,6 +54,10 @@
     } else if (image) {
       img.style.backgroundImage = `url("${image}")`;
     } else {
+      // Platzhalter: Anfangsbuchstabe auf einer aus dem Namen abgeleiteten Farbe,
+      // damit Tags ohne Bild unterscheidbar bleiben
+      img.classList.add("placeholder");
+      img.style.backgroundColor = `hsl(${hueFor(label)}, 70%, 82%)`;
       img.textContent = (label || "?").slice(0, 1).toUpperCase();
     }
     btn.appendChild(img);
@@ -219,11 +229,31 @@
     if (e.key === "Escape" || e.key === "F11" || e.altKey || e.ctrlKey || e.metaKey) e.preventDefault();
   });
 
+  // ---------- Auto-Reload nach Server-Update ----------
+  // Nach einem Image-Update (Container-Neustart) wuerde der Kiosk-Browser sonst mit altem
+  // CSS/JS weiterlaufen. Aendert sich die build_id, wird die Seite neu geladen - aber nur auf
+  // der Uebersicht, nie waehrend ein Video laeuft.
+  let buildId = null;
+
+  async function checkBuild() {
+    try {
+      const h = await api("/api/health");
+      if (buildId === null) buildId = h.build_id;
+      else if (h.build_id !== buildId && !screens.tags.classList.contains("hidden")) {
+        location.reload();
+      }
+    } catch (_) {
+      /* Server gerade nicht erreichbar (z.B. Neustart) */
+    }
+  }
+
   // Start
+  checkBuild();
   loadVolume();
   loadTags();
   // Tags regelmaessig aktualisieren, damit neue Downloads ohne Neustart erscheinen
   setInterval(() => {
+    checkBuild();
     if (!screens.tags.classList.contains("hidden")) loadTags();
   }, 30000);
 })();

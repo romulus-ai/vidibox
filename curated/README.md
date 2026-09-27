@@ -46,7 +46,8 @@ Regeln:
 - Ein Video bekommt `default_tags` **und** seine eigenen `tags`.
 - Ist ein Video (gleiche URL) bereits in der Box, wird es **nicht erneut geladen** – es bekommt nur
   die fehlenden Tags ergänzt.
-- Tag-Bilder ohne eigene Angabe verwenden automatisch das Thumbnail des ersten Videos mit diesem Tag.
+- Tags ohne `image` zeigen in der Kinder-UI einen farbigen Platzhalter mit Anfangsbuchstaben; ein Bild
+  lässt sich hier per URL oder später im Admin per Upload setzen.
 - Die Vorschau im Admin zeigt vor dem Import, was neu angelegt bzw. ergänzt würde.
 
 ## Eigene Listen

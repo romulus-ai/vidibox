@@ -73,7 +73,10 @@ html, body {
   color: inherit;
   font: inherit;
   transition: transform .1s;
+  /* Kachel darf nie unter ihre Inhaltshoehe schrumpfen - sonst verschwindet der Name */
+  min-height: max-content;
 }
+.tile > * { flex-shrink: 0; }
 .tile:active { transform: scale(.96); }
 
 .tile .img {
@@ -89,8 +92,9 @@ html, body {
   color: var(--accent-dark);
 }
 .tile.tag .img { aspect-ratio: 1 / 1; }
+.tile .img.placeholder { color: rgba(0,0,0,.45); }
 
-/* Collage: 2x2 Thumbnails der ersten Videos (Tags ohne eigenes Bild) */
+/* Collage: 2x2 Thumbnails der ersten Videos (nur "Alle"-Kachel) */
 .tile .img.collage {
   display: grid;
   grid-template-columns: 1fr 1fr;

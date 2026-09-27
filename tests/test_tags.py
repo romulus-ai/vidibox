@@ -26,20 +26,17 @@ def test_tag_sorting(admin):
     assert ids == [a["id"], b["id"]]
 
 
-def test_tag_image_upload_and_fallback(admin, worker, settings):
+def test_tag_image_upload(admin, worker, settings):
     tag = admin.post("/api/admin/tags", json={"name": "Sachkunde"}).json()
 
-    # Zwei Videos, das zuerst angelegte liefert das Fallback-Bild
-    v1 = admin.post("/api/admin/videos", json={"url": URL.format(n=1), "tag_ids": [tag["id"]]})
-    v2 = admin.post("/api/admin/videos", json={"url": URL.format(n=2), "tag_ids": [tag["id"]]})
+    admin.post("/api/admin/videos", json={"url": URL.format(n=1), "tag_ids": [tag["id"]]})
+    admin.post("/api/admin/videos", json={"url": URL.format(n=2), "tag_ids": [tag["id"]]})
     run_queue(worker)
-    v1_thumb = admin.get(f"/api/admin/videos/{v1.json()['id']}").json()["thumbnail_url"]
-    assert v2.status_code == 201
 
+    # Ohne eigenes Bild gibt es kein automatisches Bild aus den Videos
     t = admin.get("/api/admin/tags").json()[0]
     assert t["has_own_image"] is False
-    assert t["image_url"] == v1_thumb
-    assert len(t["thumbnail_urls"]) == 2 and t["thumbnail_urls"][0] == v1_thumb
+    assert t["image_url"] is None and t["thumbnail_urls"] == []
     assert t["video_count"] == 2
 
     # Eigenes Bild hochladen -> wird bevorzugt und quadratisch skaliert
@@ -66,10 +63,10 @@ def test_tag_image_upload_and_fallback(admin, worker, settings):
     )
     assert r.status_code == 400
 
-    # Bild entfernen -> zurueck zum Fallback
+    # Bild entfernen -> wieder Platzhalter
     r = admin.delete(f"/api/admin/tags/{tag['id']}/image")
     assert r.json()["has_own_image"] is False
-    assert r.json()["image_url"] == v1_thumb
+    assert r.json()["image_url"] is None
     assert not (settings.tags_dir / f"{tag['id']}.jpg").exists()
 
 
@@ -83,7 +80,7 @@ def test_deleting_tag_keeps_videos(admin, worker):
     assert admin.get(f"/api/tags/{tag['id']}/videos").status_code == 404
 
 
-def test_tag_collage_limits_to_four_oldest(admin, worker):
+def test_all_tag_collage_limits_to_four_oldest(admin, worker):
     tag = admin.post("/api/admin/tags", json={"name": "Viele"}).json()
     created = [
         admin.post(
@@ -92,8 +89,7 @@ def test_tag_collage_limits_to_four_oldest(admin, worker):
         for i in range(6)
     ]
     run_queue(worker)
-    kids_tag = next(t for t in admin.get("/api/tags").json() if t["id"] == tag["id"])
-    assert kids_tag["thumbnail_urls"] == [f"/media/thumbs/{i}.jpg" for i in created[:4]]
-    assert kids_tag["image_url"] == kids_tag["thumbnail_urls"][0]
-    all_tag = admin.get("/api/tags").json()[0]
-    assert len(all_tag["thumbnail_urls"]) == 4
+    tags = admin.get("/api/tags").json()
+    assert tags[0]["name"] == "Alle"
+    assert tags[0]["thumbnail_urls"] == [f"/media/thumbs/{i}.jpg" for i in created[:4]]
+    assert tags[1]["thumbnail_urls"] == [] and tags[1]["image_url"] is None

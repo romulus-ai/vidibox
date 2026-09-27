@@ -328,7 +328,7 @@
       const sub = document.createElement("div");
       sub.className = "sub";
       sub.textContent =
-        `${t.video_count} Video(s) · ${t.has_own_image ? "eigenes Bild" : "Bild vom ersten Video"}`;
+        `${t.video_count} Video(s) · ${t.has_own_image ? "eigenes Bild" : "kein Bild (Platzhalter)"}`;
       info.append(title, sub);
 
       const actions = document.createElement("div");

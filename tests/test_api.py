@@ -7,6 +7,7 @@ def test_health(client):
     r = client.get("/api/health")
     assert r.status_code == 200
     assert r.json()["status"] == "ok"
+    assert len(r.json()["build_id"]) == 12
 
 
 def test_admin_requires_login(client):
@@ -55,8 +56,8 @@ def test_video_lifecycle(admin, worker):
     assert kids_tags[0]["id"] == 0 and kids_tags[0]["name"] == "Alle"
     assert kids_tags[0]["video_count"] == 1
     assert kids_tags[1]["video_count"] == 1
-    assert kids_tags[1]["image_url"] == v["thumbnail_url"]
-    assert kids_tags[0]["thumbnail_urls"] == [v["thumbnail_url"]]
+    assert kids_tags[1]["image_url"] is None  # kein automatisches Bild
+    assert kids_tags[0]["thumbnail_urls"] == [v["thumbnail_url"]]  # nur "Alle" hat eine Collage
 
     # Media mit Range abrufbar
     m = admin.get(v["media_url"], headers={"Range": "bytes=0-9"})

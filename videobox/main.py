@@ -1,6 +1,7 @@
 """FastAPI-Anwendung: Router, statische Dateien, Lebenszyklus."""
 
 import logging
+import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -47,9 +48,13 @@ def create_app(
     app.include_router(admin.router)
     app.include_router(admin.protected)
 
+    # Aendert sich bei jedem Serverstart; die Kinder-UI laedt sich dann neu, damit nach einem
+    # Image-Update nicht altes CSS/JS im Kiosk-Browser haengen bleibt.
+    build_id = uuid.uuid4().hex[:12]
+
     @app.get("/api/health", tags=["system"])
     def health():
-        return {"status": "ok", "version": __version__}
+        return {"status": "ok", "version": __version__, "build_id": build_id}
 
     # Medien (StaticFiles unterstuetzt HTTP-Range fuer Video-Seeking)
     app.mount("/media/videos", StaticFiles(directory=settings.videos_dir), name="videos")
