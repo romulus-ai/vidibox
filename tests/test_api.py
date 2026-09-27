@@ -119,9 +119,5 @@ def test_status_endpoint(admin):
     assert s["video_counts"] == {"queued": 1}
 
 
-def test_volume_is_capped(client):
-    r = client.put("/api/volume", json={"volume": 100})
-    assert r.json()["volume"] == 60
-    assert r.json()["max_volume"] == 60
-    assert client.get("/api/volume").json()["volume"] == 60
-    assert client.put("/api/volume", json={"volume": 150}).status_code == 422
+def test_kids_settings_expose_max_volume(client):
+    assert client.get("/api/settings").json() == {"max_volume": 60}

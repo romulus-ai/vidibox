@@ -150,33 +150,45 @@
 
   // ---------- Lautstaerke ----------
 
+  // Die Lautstaerke wird ausschliesslich im Browser geregelt (player.volume). Der Server
+  // liefert nur den Deckel (max_volume); der gewaehlte Wert bleibt im localStorage erhalten.
+  const VOLUME_KEY = "videobox.volume";
+  let volumeHintTimer = null;
+
   async function loadVolume() {
     try {
-      volumeState = await api("/api/volume");
+      const s = await api("/api/settings");
+      volumeState.max_volume = s.max_volume;
     } catch (_) {
-      /* ohne Backend-Audio bleibt der Browser-Regler */
+      /* Deckel aus dem Default */
     }
+    const saved = parseInt(localStorage.getItem(VOLUME_KEY), 10);
+    volumeState.volume = Number.isFinite(saved) ? saved : Math.min(50, volumeState.max_volume);
     applyVolume();
   }
 
   function applyVolume() {
-    // Browser-Lautstaerke folgt der Systemlautstaerke, damit es auch ohne amixer wirkt
-    player.volume = Math.max(0, Math.min(1, volumeState.volume / 100));
+    volumeState.volume = Math.max(0, Math.min(volumeState.max_volume, volumeState.volume));
+    player.volume = volumeState.volume / 100;
+    player.muted = volumeState.volume === 0;
   }
 
-  async function changeVolume(delta) {
-    const target = Math.max(0, Math.min(volumeState.max_volume, volumeState.volume + delta));
-    try {
-      volumeState = await api("/api/volume", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ volume: target }),
-      });
-    } catch (_) {
-      volumeState.volume = target;
-    }
+  function changeVolume(delta) {
+    volumeState.volume += delta;
     applyVolume();
+    localStorage.setItem(VOLUME_KEY, String(volumeState.volume));
+    showVolumeHint();
     showOverlay();
+  }
+
+  function showVolumeHint() {
+    const hint = $("volume-hint");
+    const steps = Math.round(volumeState.max_volume / VOLUME_STEP) || 1;
+    const filled = Math.round((volumeState.volume / volumeState.max_volume) * steps);
+    hint.textContent = "\u25CF".repeat(filled) + "\u25CB".repeat(Math.max(0, steps - filled));
+    hint.classList.remove("hidden");
+    clearTimeout(volumeHintTimer);
+    volumeHintTimer = setTimeout(() => hint.classList.add("hidden"), 1500);
   }
 
   // ---------- Events ----------

@@ -54,8 +54,16 @@ speaker-test -c 2 -t wav -l 1 # Testton links/rechts
 amixer scontrols              # Name des Mixers (z.B. 'Master' oder 'Digital')
 ```
 
-Der Container steuert die Lautstärke über `amixer set <Mixer> …`. Standard ist `Master`; heißt der
-Mixer anders (z.B. `Digital` beim DAC+/Amp2), beim Start `-e VIDEOBOX_AUDIO_CONTROL=Digital` setzen.
+### Lautstärke
+
+Die Lauter/Leiser-Buttons der Kinder-UI regeln die Lautstärke **im Browser** (gedeckelt durch
+`VIDEOBOX_MAX_VOLUME`). Der Container braucht deshalb keinen Zugriff auf die Soundkarte. Die
+Host-Lautstärke ist der physische Deckel und wird einmal fest eingestellt, z. B. im Kiosk-Skript
+vor dem Chromium-Start (Mixername aus `amixer scontrols`):
+
+```bash
+amixer -q set Master 80%      # bzw. 'Digital' bei DAC+/Amp2
+```
 
 Falls Chromium den Ton über PipeWire ausgibt (Standard auf Bookworm), muss in den Desktop-
 Lautstärke-Einstellungen (Rechtsklick auf das Lautsprechersymbol) die HiFiBerry als Ausgabegerät
@@ -87,7 +95,6 @@ sudo chown 999:999 /var/lib/videobox   # UID/GID des 'app'-Users im Image; alter
 docker run -d --name videobox --restart unless-stopped \
   -p 8000:8000 \
   -v /var/lib/videobox:/data \
-  --device /dev/snd \
   -e VIDEOBOX_ADMIN_PIN=1234 \
   -e VIDEOBOX_MAX_VOLUME=70 \
   -e VIDEOBOX_MAX_RESOLUTION=720 \
@@ -129,6 +136,9 @@ unterscheidet sich je nach Compositor.
 #!/bin/bash
 # Warten, bis der Videobox-Container antwortet
 until curl -fsS http://localhost:8000/api/health >/dev/null; do sleep 2; done
+
+# Host-Lautstärke fest einstellen (physischer Deckel; Feinregelung macht die Kinder-UI im Browser)
+amixer -q set Master 80% 2>/dev/null || true
 
 # Chromium-Absturzhinweis unterdrücken
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]*"/"exit_type":"Normal"/' \
@@ -210,8 +220,8 @@ Mauszeiger auf dem Touchscreen ausblenden (X11): `sudo apt install unclutter` un
 
 | Symptom                              | Prüfen                                                          |
 |--------------------------------------|-----------------------------------------------------------------|
-| Kein Ton                             | `aplay -l`, Ausgabegerät im Desktop, `--device /dev/snd` gesetzt? |
-| Lautstärke-Buttons wirkungslos       | `docker exec videobox amixer scontrols` – Mixername prüfen       |
+| Kein Ton                             | `aplay -l`, Ausgabegerät im Desktop, Host-Lautstärke (`amixer get Master`) nicht auf 0 |
+| Zu leise trotz Lauter-Button         | `VIDEOBOX_MAX_VOLUME` erhöhen bzw. Host-Lautstärke im Kiosk-Skript anheben |
 | Download bleibt auf „Fehler“         | `docker logs videobox`; ggf. Image aktualisieren (neues yt-dlp)  |
 | Video ruckelt                        | `VIDEOBOX_MAX_RESOLUTION=540` setzen und neu laden               |
 | Chromium zeigt Fehlerseite beim Start| `kiosk.sh` wartet auf `/api/health`; Docker-Dienst aktiv?        |

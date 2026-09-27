@@ -72,14 +72,10 @@ class LoginRequest(BaseModel):
     pin: str
 
 
-class VolumeOut(BaseModel):
-    volume: int
+class KidsSettings(BaseModel):
+    """Einstellungen, die die Kinder-UI vom Server braucht."""
+
     max_volume: int
-    available: bool
-
-
-class VolumeSet(BaseModel):
-    volume: int = Field(ge=0, le=100)
 
 
 class ImportRequest(BaseModel):

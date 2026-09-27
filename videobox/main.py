@@ -13,7 +13,6 @@ from videobox.api import admin, kids
 from videobox.api.deps import SessionStore
 from videobox.config import Settings, get_settings
 from videobox.db import Database
-from videobox.services.audio import AudioControl
 from videobox.services.downloader import DownloadWorker, YtDlpLike
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -42,7 +41,6 @@ def create_app(
     app.state.settings = settings
     app.state.db = db
     app.state.worker = worker
-    app.state.audio = AudioControl(max_volume=settings.max_volume, control=settings.audio_control)
     app.state.sessions = SessionStore(ttl_seconds=settings.session_hours * 3600)
 
     app.include_router(kids.router)

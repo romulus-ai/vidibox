@@ -19,9 +19,9 @@ RUN uv sync --frozen --no-dev
 FROM python:3.12-slim-bookworm
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg alsa-utils ca-certificates curl \
+    && apt-get install -y --no-install-recommends ffmpeg ca-certificates curl \
     && rm -rf /var/lib/apt/lists/* \
-    && groupadd -r app && useradd -r -g app -G audio -d /app app \
+    && groupadd -r app && useradd -r -g app -d /app app \
     && mkdir -p /data && chown app:app /data
 
 WORKDIR /app

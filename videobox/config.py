@@ -12,9 +12,8 @@ class Settings(BaseSettings):
 
     data_dir: Path = Field(default=Path("./data"))
     admin_pin: str = Field(default="1234", min_length=4)
+    # Deckel fuer die Lautstaerke des Browser-Players in der Kinder-UI (Prozent)
     max_volume: int = Field(default=70, ge=0, le=100)
-    # Name des ALSA-Mixers (amixer scontrols), z.B. "Master" oder "Digital" (HiFiBerry DAC+)
-    audio_control: str = Field(default="Master")
     max_resolution: int = Field(default=720, ge=240, le=2160)
     # Wie oft ein durch Neustart unterbrochener Download erneut angefasst wird
     max_attempts: int = Field(default=3, ge=1)

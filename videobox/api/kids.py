@@ -2,8 +2,8 @@
 
 from fastapi import APIRouter, HTTPException, status
 
-from videobox.api.deps import AudioDep, DbDep, video_to_out
-from videobox.models import TagOut, VideoOut, VolumeOut, VolumeSet
+from videobox.api.deps import DbDep, SettingsDep, video_to_out
+from videobox.models import KidsSettings, TagOut, VideoOut
 from videobox.services import tags as tag_service
 
 router = APIRouter(prefix="/api", tags=["kids"])
@@ -48,12 +48,6 @@ def get_video(video_id: str, db: DbDep):
     return video_to_out(video)
 
 
-@router.get("/volume", response_model=VolumeOut)
-def get_volume(audio: AudioDep):
-    return VolumeOut(volume=audio.get(), max_volume=audio.max_volume, available=audio.available)
-
-
-@router.put("/volume", response_model=VolumeOut)
-def set_volume(body: VolumeSet, audio: AudioDep):
-    v = audio.set(body.volume)
-    return VolumeOut(volume=v, max_volume=audio.max_volume, available=audio.available)
+@router.get("/settings", response_model=KidsSettings)
+def kids_settings(settings: SettingsDep):
+    return KidsSettings(max_volume=settings.max_volume)

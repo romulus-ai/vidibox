@@ -8,7 +8,6 @@ from fastapi import Depends, HTTPException, Request, status
 
 from videobox.config import Settings
 from videobox.db import Database
-from videobox.services.audio import AudioControl
 from videobox.services.downloader import DownloadWorker
 
 SESSION_COOKIE = "videobox_admin"
@@ -54,10 +53,6 @@ def get_worker(request: Request) -> DownloadWorker:
     return request.app.state.worker
 
 
-def get_audio(request: Request) -> AudioControl:
-    return request.app.state.audio
-
-
 def get_sessions(request: Request) -> SessionStore:
     return request.app.state.sessions
 
@@ -72,7 +67,6 @@ def require_admin(
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 DbDep = Annotated[Database, Depends(get_db)]
 WorkerDep = Annotated[DownloadWorker, Depends(get_worker)]
-AudioDep = Annotated[AudioControl, Depends(get_audio)]
 SessionsDep = Annotated[SessionStore, Depends(get_sessions)]
 
 

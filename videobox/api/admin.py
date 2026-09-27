@@ -17,7 +17,6 @@ from fastapi import (
 
 from videobox.api.deps import (
     SESSION_COOKIE,
-    AudioDep,
     DbDep,
     SessionsDep,
     SettingsDep,
@@ -38,8 +37,6 @@ from videobox.models import (
     VideoCreate,
     VideoOut,
     VideoUpdate,
-    VolumeOut,
-    VolumeSet,
 )
 from videobox.services import importer
 from videobox.services import tags as tag_service
@@ -97,17 +94,6 @@ def admin_status(db: DbDep, settings: SettingsDep, worker: WorkerDep):
         ytdlp_version=ytdlp_version(),
         video_counts=counts,
     )
-
-
-@protected.get("/volume", response_model=VolumeOut)
-def get_volume(audio: AudioDep):
-    return VolumeOut(volume=audio.get(), max_volume=audio.max_volume, available=audio.available)
-
-
-@protected.put("/volume", response_model=VolumeOut)
-def set_volume(body: VolumeSet, audio: AudioDep):
-    v = audio.set(body.volume)
-    return VolumeOut(volume=v, max_volume=audio.max_volume, available=audio.available)
 
 
 # ---------- Videos ----------
